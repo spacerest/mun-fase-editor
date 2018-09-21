@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="open-cv-container" style=
+    "background-image: url({{ MEDIA_URL  }}{{ preview_image.image }});
+     background-size: cover;">
+    </div>
+    <div class="delete-me-test">
+        {{ extra_info }}
+    </div>
+    <form class="selected-images">
+        <input class="selected-image-preview" style=
+                      "background-image: url({{ MEDIA_URL }}{{ preview_image.moon.image }});"/>
+        <input class="selected-image-preview" style=
+                      "background-image: url({{ MEDIA_URL }}{{ preview_image.selfie.image }});"/>
+        <input class="selected-image-preview" style=
+                      "background-image: url({{ MEDIA_URL }}{{ preview_image.foreground.image }});"/>
+        <input class="selected-image-preview" style=
+                      "background-image: url({{ MEDIA_URL }}{{ preview_image.background.image }});" />
+    </form>
+        <h1>Choose the moon phase template:</h1>
+        {% if moon_images %}
+            <form method="post" class="img-group-container">
+            {% csrf_token %}
+            {% for moon_image in moon_images %}
+            <label class="img-select" for='moon-{{ moon_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ moon_image.image }});">
+                <input type="submit" value="{{ moon_image.id }}" name="moon-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="media">
+                {{ moon_upload_form.as_p }}
+                <input type="submit" value="Upload" name="moon-upload">
+              <br>
+          </form>
+        <h1>Choose the mirror selfie:</h1>
+        {% if selfie_images %}
+        <form method="post" class="img-group-container">
+            {% csrf_token %}
+            {% for selfie_image in selfie_images %}
+            <label class="img-select" for='selfie-{{ selfie_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ selfie_image.image }});">
+                <input type="submit" value="{{ selfie_image.id }}" name="selfie-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="media">
+                {{ selfie_upload_form.as_p }}
+                <input type="submit" value="Upload" name="selfie-upload">
+              <br>
+          </form>
+        <h1>Texture images</h1>
+            <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="media">
+                {{ texture_upload_form.as_p }}
+                <input type="submit" value="Upload" name="texture-upload" >
+              <br>
+          </form>
+        <h2>Choose the moon foreground:</h2>
+        {% if texture_images %}
+            <form method="post" class="img-group-container" name="foreground">
+            {% csrf_token %}
+            {% for texture_image in texture_images %}
+                <label class="img-select" for='foreground-{{ texture_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ texture_image.image }});">
+                <input type="submit" value="{{ texture_image.id }}" name="foreground-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% endif %}
+        <h2>Choose the background:</h2>
+        {% if texture_images %}
+            <form method="post" class="img-group-container" name="texture">
+            {% csrf_token %}
+            {% for texture_image in texture_images %}
+                <label class="img-select" for='texture-{{ texture_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ texture_image.image }});">
+                <input type="submit" value="{{ texture_image.id }}" name="background-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% endif %}
+{% endblock %}

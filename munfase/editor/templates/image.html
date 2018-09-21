@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Jumbotron Header -->
+        <h1>Please choose the moon pic yo</h1>
+        <h1></h1>
+        <p>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="media">
+                {{ form.as_p }}
+                <input type="submit" value="Upload">
+              <br>
+          </form>
+        </p>
+        <br>
+        </div>
+
+{% endblock %}
