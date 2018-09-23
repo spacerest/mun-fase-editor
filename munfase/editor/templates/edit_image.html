@@ -7,9 +7,11 @@
     "background-image: url({{ MEDIA_URL  }}{{ preview_image.image }});
      background-size: cover;">
     </div>
-    <div class="delete-me-test">
-        {{ extra_info }}
-    </div>
+    <form method='POST'>
+        {% csrf_token %}
+        {{ preview_form.as_p }}
+        <input type="submit" value="update preview image properties" name="color-values"/>
+        </form>
     <form class="selected-images">
         <input class="selected-image-preview" style=
                       "background-image: url({{ MEDIA_URL }}{{ preview_image.moon.image }});"/>

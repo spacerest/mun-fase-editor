@@ -31,4 +31,4 @@ class TextureUploadForm(ModelForm):
 class PreviewForm(ModelForm):
     class Meta:
         model = PreviewImage
-        fields = ('moon', 'selfie', 'foreground', 'background')
+        fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted')

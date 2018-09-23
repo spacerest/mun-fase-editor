@@ -34,9 +34,16 @@ class TextureImage(models.Model):
 class PreviewImage(models.Model):
     image = models.ImageField(upload_to="preview", editable=True, null=True, blank=True, storage=OverwriteStorage())
     selfie = models.ForeignKey(SelfieImage, blank=True, null=True, on_delete=models.CASCADE)
+    selfie_contrast = models.IntegerField(default=1, blank=True, null=True)
     moon = models.ForeignKey(MoonImage, blank=True, null=True, on_delete=models.CASCADE)
     foreground = models.ForeignKey(TextureImage, blank=True, null=True, on_delete=models.CASCADE, related_name='foreground')
     background = models.ForeignKey(TextureImage, blank=True, null=True, on_delete=models.CASCADE, related_name='background')
+    foreground_transparency = models.IntegerField(default=255)
+    background_transparency = models.IntegerField(default=255)
+    foreground_inverted = models.BooleanField(default=False)
+    background_inverted = models.BooleanField(default=False)
+
+
 
 class SavedImage(models.Model):
     image = models.ImageField(upload_to="final")
