@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage
+from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage, SavedImage
 
 
 class SignupForm(UserCreationForm):
@@ -32,3 +32,8 @@ class PreviewForm(ModelForm):
     class Meta:
         model = PreviewImage
         fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted')
+
+class SaveImageForm(ModelForm):
+    class Meta:
+        model = SavedImage
+        fields = ('image',)

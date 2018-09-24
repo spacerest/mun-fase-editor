@@ -8,7 +8,10 @@
      background-size: cover;">
     </div>
     <form method='POST'>
+    </div>
+    <form method='POST'>
         {% csrf_token %}
+        <input type="submit" value="Save as a post" name="save-image">
         {{ preview_form.as_p }}
         <input type="submit" value="update preview image properties" name="color-values"/>
         </form>

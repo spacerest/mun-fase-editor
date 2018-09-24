@@ -56,6 +56,16 @@ class SavedImage(models.Model):
     foreground_user = models.CharField(max_length=60, null=True, blank=True)
     foreground_description = models.CharField(default=":)", max_length=60)
     percent_illuminated = models.IntegerField()
-
     def __str__(self):
-        return self.selfie_user + self.percent_illuminated
+        return str(self.image)
+    @classmethod
+    def create(cls, previewImg):
+        return cls(
+            image = previewImg.image,
+            selfie_user = previewImg.selfie.username,
+            background_user = previewImg.background.username,
+            foreground_user = previewImg.foreground.username,
+            background_description = previewImg.background.description,
+            foreground_description = previewImg.foreground.description,
+            percent_illuminated = previewImg.moon.percent_illuminated
+        )

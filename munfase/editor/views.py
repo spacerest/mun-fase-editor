@@ -4,13 +4,14 @@ from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUp
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage
+from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage, SavedImage
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
 from munfase.settings import BASE_DIR
 from munfase import settings
 from editor.instagram_modules import login as ig
+import datetime
 
 
 #for saving edited files to model
@@ -73,8 +74,35 @@ def updatePreviewObjects(request, previewImage):
         previewForm = PreviewForm(request.POST, instance=previewImage)
         if previewForm.is_valid():
             previewForm.save()
-    previewImage.save()
+    elif request.method == 'POST' and 'save-image' in request.POST:
+        previewForm = PreviewForm(request.POST)
+        if previewForm.is_valid():
+            save_new_image(previewImage)
+        previewImage.save()
     return PreviewForm(instance=previewImage)
+
+def save_new_image(previewImage):
+     buffer = BytesIO()
+     previewImageFile = Image.open(previewImage.image)
+     previewImageFile.save(fp=buffer, format='PNG')
+     contentFile = ContentFile(buffer.getvalue())
+     savedImage = SavedImage.create(previewImage)
+     savedImageFileName = "{}_{}_{}.jpg".format(
+            previewImage.moon.percent_illuminated,
+            previewImage.selfie.username,
+            datetime.date.today().strftime("%Y%m%d")
+        )
+     savedImage.image.save(savedImageFileName, InMemoryUploadedFile(
+        contentFile,
+        None,
+        savedImageFileName,
+        'image/jpeg',
+        contentFile.tell,
+        None
+    ))
+
+
+
 
 def process_image_files(previewImage, name=None, background_alpha=200, foreground_alpha=200):
     buffer = BytesIO()
