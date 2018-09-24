@@ -10,6 +10,7 @@ from PIL import Image, ImageOps, ImageEnhance
 import os
 from munfase.settings import BASE_DIR
 from munfase import settings
+from editor.instagram_modules import login as ig
 
 
 #for saving edited files to model
@@ -213,29 +214,7 @@ def make_thumbnail(obj):
                             None
                         ))
 
-def return_image(request):
-    selfie_image = Image.open(os.path.join(BASE_DIR, 'media/selfie/yerin_pong.jpg'), 'r')
-    selfie_image = selfie_image.resize((1000,1000))
-    moon_mask = Image.open(os.path.join(BASE_DIR, 'media/moon/77.png'), 'r')
-    moon_mask = moon_mask.convert("L")
-    selfie_image.putalpha(moon_mask)
-    moon = Image.open(os.path.join(BASE_DIR, 'media/moon/77.png'), 'r')
-    moon = moon.resize((1000,1000))
-    background = Image.open(os.path.join(BASE_DIR, 'media/texture/583_prof_1.jpg'), 'r')
-    background = background.resize((1000,1000))
-    foreground = Image.open(os.path.join(BASE_DIR, 'media/texture/IMG_80371.JPG'), 'r')
-    foreground = foreground.resize((1000,1000))
-    foreground.paste(selfie_image, (0,0), mask=selfie_image)
-    response = HttpResponse(content_type="image/png")
-    foreground.save(response, "PNG")
-    return response
-    return render(request, 'edit_image.html',
-                  {'base_img': base_img,
-                    'moon_upload_form': moonUploadForm,
-                   'selfie_upload_form': selfieUploadForm,
-                   'texture_upload_form': textureUploadForm,
-                   'moon_images': moon_images,
-                   'selfie_images': selfie_images,
-                   'texture_images': texture_images }
-                  )
-
+def log_into_instagram(request):
+    previewImage = PreviewImage.objects.first()
+    instagram_user = ig.post_image(previewImage)
+    return render(request, 'post_uploaded.html', {'instagram_user': instagram_user})
