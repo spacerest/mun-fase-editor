@@ -11,10 +11,12 @@ import os
 from munfase.settings import BASE_DIR
 from munfase import settings
 
+
 #for saving edited files to model
 #https://stackoverflow.com/questions/32945292/how-to-save-pillow-image-object-to-django-imagefield/45907694
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
+from io import StringIO
 from django.core.files.base import ContentFile
 
 def signup(request):
@@ -57,6 +59,7 @@ def logout_user(request):
     return redirect('/login')
 
 def updatePreviewObjects(request, previewImage):
+
     if request.method == 'POST' and "selfie-selection" in request.POST:
         previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
     elif request.method == 'POST' and "moon-selection" in request.POST:
@@ -74,22 +77,35 @@ def updatePreviewObjects(request, previewImage):
 
 def process_image_files(previewImage, name=None, background_alpha=200, foreground_alpha=200):
     buffer = BytesIO()
-    selfie = Image.open(previewImage.selfie.image)
+    if previewImage.selfie:
+        selfie = Image.open(previewImage.selfie.image)
+        moon_shaped_selfie = Image.open(previewImage.selfie.image)
+    else:
+        selfie = Image.new('RGB', (1000,1000), 'black')
+        moon_shaped_selfie = Image.new('RGB', (1000,1000), 'black')
     selfie = ImageOps.fit(selfie, (1000, 1000), Image.ANTIALIAS)
-    moon_shaped_selfie = Image.open(previewImage.selfie.image)
     moon_shaped_selfie = ImageOps.fit(moon_shaped_selfie, (1000,1000), Image.ANTIALIAS)
-    moon_shaped_selfie = moon_shaped_selfie.resize((1000,1000), Image.ANTIALIAS)
-    moon_mask = Image.open(previewImage.moon.image, 'r')
+    if previewImage.moon:
+        moon_mask = Image.open(previewImage.moon.image, 'r')
+        moon_mask_transparent = Image.open(previewImage.moon.image, 'r')
+    else:
+        moon_mask = Image.new('RGB', (1000,1000), 'black')
+        moon_mask_transparent = Image.new('RGB', (1000,1000), 'black')
     moon_mask = moon_mask.convert("L")
-    moon_mask_transparent = Image.open(previewImage.moon.image, 'r')
     moon_mask_transparent = moon_mask_transparent.point(lambda i: min(i * 25, foreground_alpha))
     moon_mask_transparent = moon_mask_transparent.convert("L")
 
-    background = Image.open(previewImage.background.image, 'r')
-    background = ImageOps.fit(background, (1000,1000), Image.ANTIALIAS)
-    moon_shaped_foreground = Image.open(previewImage.foreground.image)
-    moon_shaped_foreground = ImageOps.fit(moon_shaped_foreground, (1000,1000), Image.ANTIALIAS)
+    if previewImage.background:
+        background = Image.open(previewImage.background.image, 'r')
+        background = ImageOps.fit(background, (1000,1000), Image.ANTIALIAS)
+    else:
+        background= Image.new('RGB',(1000,1000),'black')
 
+    if previewImage.foreground:
+        moon_shaped_foreground = Image.open(previewImage.foreground.image)
+        moon_shaped_foreground = ImageOps.fit(moon_shaped_foreground, (1000,1000), Image.ANTIALIAS)
+    else:
+        moon_shaped_foreground = Image.new('RGB', (1000,1000), 'black')
     if previewImage.background_inverted:
         background = invert_image(background)
     if previewImage.foreground_inverted:
@@ -129,23 +145,27 @@ def edit_image(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
     textureUploadForm = TextureUploadForm()
-    previewImage = PreviewImage.objects.all().first()
+    previewImage = PreviewImage.objects.all().first() or PreviewImage()
+    print(previewImage)
     previewForm = PreviewForm(instance=previewImage)
     extraInfo = request.POST
     if request.method == 'POST' and "moon-upload" in request.POST:
         moonUploadForm = MoonUploadForm(request.POST, request.FILES)
         if moonUploadForm.is_valid():
-            moonUploadForm.save()
+            moonImageObj = moonUploadForm.save()
+            make_thumbnail(moonImageObj)
             moonUploadForm = MoonUploadForm()
     elif request.method == 'POST' and "selfie-upload" in request.POST:
         selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
         if selfieUploadForm.is_valid():
-            selfieUploadForm.save()
+            selfieImageObj = selfieUploadForm.save()
+            make_thumbnail(selfieImageObj)
             selfieUploadForm = SelfieUploadForm()
     elif request.method == 'POST' and "texture-upload" in request.POST:
         textureUploadForm = TextureUploadForm(request.POST, request.FILES)
         if textureUploadForm.is_valid():
-            textureUploadForm.save()
+            textureImageObj = textureUploadForm.save()
+            make_thumbnail(textureImageObj)
             textureUploadForm = TextureUploadForm()
     previewForm = updatePreviewObjects(request, previewImage)
     pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
@@ -176,6 +196,22 @@ def edit_image(request):
 #A mask is an Image object where the alpha value is significant, but its green, red, and blue values are ignored.
 
 #transparency masks: http://www.leancrew.com/all-this/2013/11/transparency-with-pil/
+
+def make_thumbnail(obj):
+    buffer = BytesIO()
+    image = Image.open(obj.image)
+    image = ImageOps.fit(image, (100, 100), Image.ANTIALIAS)
+    image.save(fp=buffer, format='PNG')
+    thumbnailBuffer = ContentFile(buffer.getvalue())
+    obj.thumbnail.save(obj.image.name,
+                        InMemoryUploadedFile(
+                            thumbnailBuffer,
+                            None,
+                            obj.image.name,
+                            'image/jpeg',
+                            thumbnailBuffer.tell,
+                            None
+                        ))
 
 def return_image(request):
     selfie_image = Image.open(os.path.join(BASE_DIR, 'media/selfie/yerin_pong.jpg'), 'r')

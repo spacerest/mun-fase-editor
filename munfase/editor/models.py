@@ -8,6 +8,7 @@ from editor.storage import OverwriteStorage
 class MoonImage(models.Model):
     """docstring for Moon"""
     image = models.ImageField(upload_to="moon")
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     percent_illuminated = models.IntegerField(default = 50)
     def __str__(self):
         return str(self.percent_illuminated)
@@ -15,6 +16,7 @@ class MoonImage(models.Model):
 class SelfieImage(models.Model):
     """docstring for SelfieImage"""
     image = models.ImageField(upload_to="selfie")
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     username = models.CharField(default="", max_length=50)
     date_uploaded = models.DateField(auto_now_add=True)
     used = models.BooleanField(default=False)
@@ -24,6 +26,7 @@ class SelfieImage(models.Model):
 class TextureImage(models.Model):
     """docstring for TextureImage"""
     image = models.ImageField(upload_to="texture")
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     username = models.CharField(default="none", max_length=50)
     date_uploaded = models.DateField(auto_now_add=True)
     used = models.BooleanField(default=False)
