@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage, SavedImage
+from editor.models import *
 
 
 class SignupForm(UserCreationForm):
@@ -15,7 +15,7 @@ class SignupForm(UserCreationForm):
 
 class MoonUploadForm(ModelForm):
     class Meta:
-        model = MoonImage
+        model = MoonTemplate
         fields = ('image', 'percent_illuminated',)
 
 class SelfieUploadForm(ModelForm):

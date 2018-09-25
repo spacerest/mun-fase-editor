@@ -4,7 +4,7 @@ from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUp
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonImage, SelfieImage, TextureImage, PreviewImage, SavedImage
+from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, SavedImage
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
@@ -65,7 +65,7 @@ def updatePreviewObjects(request, previewImage):
     if request.method == 'POST' and "selfie-selection" in request.POST:
         previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
     elif request.method == 'POST' and "moon-selection" in request.POST:
-        previewImage.moon = MoonImage.objects.filter(pk=request.POST.get('moon-selection')).first()
+        previewImage.moon = MoonTemplate.objects.filter(pk=request.POST.get('moon-selection')).first()
     elif request.method == 'POST' and "foreground-selection" in request.POST:
         previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
     elif request.method == 'POST' and "background-selection" in request.POST:
@@ -169,7 +169,7 @@ def invert_image(img):
 @login_required(login_url='/login')
 def edit_image(request):
     try:
-        moon_images = MoonImage.objects.order_by('percent_illuminated')
+        moon_images = MoonTemplate.objects.order_by('percent_illuminated')
         selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
         texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
         moonUploadForm = MoonUploadForm()
@@ -182,8 +182,8 @@ def edit_image(request):
         if request.method == 'POST' and "moon-upload" in request.POST:
             moonUploadForm = MoonUploadForm(request.POST, request.FILES)
             if moonUploadForm.is_valid():
-                moonImageObj = moonUploadForm.save()
-                make_thumbnail(moonImageObj)
+                moonTemplateObj = moonUploadForm.save()
+                make_thumbnail(moonTemplateObj)
                 moonUploadForm = MoonUploadForm()
         elif request.method == 'POST' and "selfie-upload" in request.POST:
             selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
