@@ -168,55 +168,59 @@ def invert_image(img):
 
 @login_required(login_url='/login')
 def edit_image(request):
-    moon_images = MoonImage.objects.order_by('percent_illuminated')
-    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
-    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
-    moonUploadForm = MoonUploadForm()
-    selfieUploadForm = SelfieUploadForm()
-    textureUploadForm = TextureUploadForm()
-    previewImage = PreviewImage.objects.all().first() or PreviewImage()
-    print(previewImage)
-    previewForm = PreviewForm(instance=previewImage)
-    extraInfo = request.POST
-    if request.method == 'POST' and "moon-upload" in request.POST:
-        moonUploadForm = MoonUploadForm(request.POST, request.FILES)
-        if moonUploadForm.is_valid():
-            moonImageObj = moonUploadForm.save()
-            make_thumbnail(moonImageObj)
-            moonUploadForm = MoonUploadForm()
-    elif request.method == 'POST' and "selfie-upload" in request.POST:
-        selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
-        if selfieUploadForm.is_valid():
-            selfieImageObj = selfieUploadForm.save()
-            make_thumbnail(selfieImageObj)
-            selfieUploadForm = SelfieUploadForm()
-    elif request.method == 'POST' and "texture-upload" in request.POST:
-        textureUploadForm = TextureUploadForm(request.POST, request.FILES)
-        if textureUploadForm.is_valid():
-            textureImageObj = textureUploadForm.save()
-            make_thumbnail(textureImageObj)
-            textureUploadForm = TextureUploadForm()
-    previewForm = updatePreviewObjects(request, previewImage)
-    pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
-    previewImage.image.save('temp.jpg', InMemoryUploadedFile(
-        pillow_image,
-        None,
-        'temp.jpg',
-        'image/jpeg',
-        pillow_image.tell,
-        None
-    ))
-    return render(request, 'edit_image.html',
-                  {'moon_upload_form': moonUploadForm,
-                   'selfie_upload_form': selfieUploadForm,
-                   'texture_upload_form': textureUploadForm,
-                   'preview_form': previewForm,
-                   'preview_image': previewImage,
-                   'extra_info': extraInfo,
-                   'moon_images': moon_images,
-                   'selfie_images': selfie_images,
-                   'texture_images': texture_images }
-                  )
+    try:
+        moon_images = MoonImage.objects.order_by('percent_illuminated')
+        selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
+        texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+        moonUploadForm = MoonUploadForm()
+        selfieUploadForm = SelfieUploadForm()
+        textureUploadForm = TextureUploadForm()
+        previewImage = PreviewImage.objects.all().first() or PreviewImage()
+        print(previewImage)
+        previewForm = PreviewForm(instance=previewImage)
+        extraInfo = request.POST
+        if request.method == 'POST' and "moon-upload" in request.POST:
+            moonUploadForm = MoonUploadForm(request.POST, request.FILES)
+            if moonUploadForm.is_valid():
+                moonImageObj = moonUploadForm.save()
+                make_thumbnail(moonImageObj)
+                moonUploadForm = MoonUploadForm()
+        elif request.method == 'POST' and "selfie-upload" in request.POST:
+            selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
+            if selfieUploadForm.is_valid():
+                selfieImageObj = selfieUploadForm.save()
+                make_thumbnail(selfieImageObj)
+                selfieUploadForm = SelfieUploadForm()
+        elif request.method == 'POST' and "texture-upload" in request.POST:
+            textureUploadForm = TextureUploadForm(request.POST, request.FILES)
+            if textureUploadForm.is_valid():
+                textureImageObj = textureUploadForm.save()
+                make_thumbnail(textureImageObj)
+                textureUploadForm = TextureUploadForm()
+        previewForm = updatePreviewObjects(request, previewImage)
+        pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
+        previewImage.image.save('temp.jpg', InMemoryUploadedFile(
+            pillow_image,
+            None,
+            'temp.jpg',
+            'image/jpeg',
+            pillow_image.tell,
+            None
+        ))
+        return render(request, 'edit_image.html',
+                      {'moon_upload_form': moonUploadForm,
+                       'selfie_upload_form': selfieUploadForm,
+                       'texture_upload_form': textureUploadForm,
+                       'preview_form': previewForm,
+                       'preview_image': previewImage,
+                       'extra_info': extraInfo,
+                       'moon_images': moon_images,
+                       'selfie_images': selfie_images,
+                       'texture_images': texture_images }
+                      )
+    except Exception as e:
+        return render(request, 'error.html',
+                      { 'error': e })
 
 #image processing
 #helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html

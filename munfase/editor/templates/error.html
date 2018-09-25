@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+    <p>{{ error }}</p>
+    {% endif %}
+</div>
+{% endblock %}
