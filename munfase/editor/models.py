@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 from editor.storage import OverwriteStorage
+from django.db.models.signals import post_delete
+from .utils.utilities import file_cleanup
+import os
+from munfase import settings
 
 # Create your models here.
 
@@ -12,6 +16,12 @@ class MoonTemplate(models.Model):
     percent_illuminated = models.IntegerField(default = 50)
     def __str__(self):
         return str(self.percent_illuminated)
+    def delete(self, *args, **kwargs):
+        if self.image:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
+        if self.thumbnail:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.thumbnail.name))
+        super(MoonTemplate,self).delete(*args,**kwargs)
 
 def get_upload_path(cls, filename):
     return cls.__class__.__name__ + "/" + filename
@@ -19,8 +29,14 @@ def get_upload_path(cls, filename):
 class UserUploadedImage(models.Model):
     """images that are uploaded by a user, resized, and combined to make final image"""
     image = models.ImageField(upload_to=get_upload_path)
-    thumbnail = models.ImageField(upload_to="thumbnails")
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     date_uploaded = models.DateField(auto_now_add=True)
+    def delete(self, *args, **kwargs):
+        if self.image:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
+        if self.thumbnail:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.thumbnail.name))
+        super(UserUploadedImage,self).delete(*args,**kwargs)
 
 class SelfieImage(UserUploadedImage):
     """docstring for SelfieImage"""
@@ -48,8 +64,6 @@ class PreviewImage(models.Model):
     background_transparency = models.IntegerField(default=255)
     foreground_inverted = models.BooleanField(default=False)
     background_inverted = models.BooleanField(default=False)
-
-
 
 class SavedImage(models.Model):
     image = models.ImageField(upload_to="final")
