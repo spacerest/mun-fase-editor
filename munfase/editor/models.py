@@ -3,9 +3,12 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from editor.storage import OverwriteStorage
 from django.db.models.signals import post_delete
-from .utils.utilities import file_cleanup
 import os
 from munfase import settings
+from PIL import Image, ImageOps, ImageEnhance
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 # Create your models here.
 
@@ -31,6 +34,39 @@ class UserUploadedImage(models.Model):
     image = models.ImageField(upload_to=get_upload_path)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     date_uploaded = models.DateField(auto_now_add=True)
+    def save(self, image_size=(1000,1000), thumbnail_size=(100,100)):
+        super(UserUploadedImage, self).save()
+        if not self.id:
+            return
+        image_width = self.image.width
+        image_height = self.image.height
+        new_width = image_size[0]
+        new_height = image_size[1]
+        image_filename = str(self.image.path)
+        image = Image.open(image_filename)
+
+        if (image_width < image_height):
+            new_width = image_size[0]
+            new_height = int(image_size[1] * image_height / image_width)
+        elif (image_height < image_width):
+            new_height = image_size[1]
+            new_width = int(image_size[0] * image_height / image_width)
+
+        image = image.resize((new_width, new_height), Image.ANTIALIAS)
+        image.save(image_filename)
+
+        if not self.thumbnail:
+            buffer = BytesIO()
+            image = Image.open(self.image.path)
+            image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
+            image.save(fp=buffer, format='PNG')
+            image.seek(0)
+
+            self.thumbnail.save(self.image.name,
+                           ContentFile(buffer.getvalue()), save=True)
+            image.close()
+        return False
+
     def delete(self, *args, **kwargs):
         if self.image:
             os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
