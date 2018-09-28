@@ -31,9 +31,9 @@ class TextureUploadForm(ModelForm):
 class PreviewForm(ModelForm):
     class Meta:
         model = PreviewImage
-        fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted')
+        fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted', )
 
-class SaveImageForm(ModelForm):
+class SavedImageForm(ModelForm):
     class Meta:
         model = SavedImage
-        fields = ('image',)
+        fields = ('first_emoji', 'second_emoji', 'moon_state_description', 'selfie_username', 'foreground_description', 'background_description')

@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -60,8 +60,7 @@ def logout_user(request):
     logout(request)
     return redirect('/login')
 
-def updatePreviewObjects(request, previewImage):
-
+def update_preview_image(request, previewImage):
     if request.method == 'POST' and "selfie-selection" in request.POST:
         previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
     elif request.method == 'POST' and "moon-selection" in request.POST:
@@ -73,26 +72,20 @@ def updatePreviewObjects(request, previewImage):
     elif request.method == 'POST' and 'color-values' in request.POST:
         previewForm = PreviewForm(request.POST, instance=previewImage)
         if previewForm.is_valid():
-            previewForm.save()
-    elif request.method == 'POST' and 'save-image' in request.POST:
-        previewForm = PreviewForm(request.POST)
-        if previewForm.is_valid():
-            save_new_image(previewImage)
-        previewImage.save()
+            previewImage = previewForm.save()
     return PreviewForm(instance=previewImage)
 
-def save_new_image(previewImage):
+def save_new_image(previewImage, savedImageObj):
      buffer = BytesIO()
      previewImageFile = Image.open(previewImage.image)
      previewImageFile.save(fp=buffer, format='PNG')
      contentFile = ContentFile(buffer.getvalue())
-     savedImage = SavedImage.create(previewImage)
      savedImageFileName = "{}_{}_{}.jpg".format(
             previewImage.moon.percent_illuminated,
             previewImage.selfie.username,
-            datetime.date.today().strftime("%Y%m%d")
+            datetime.date.today().strftime("%Y%m%d%h%M%S")
         )
-     savedImage.image.save(savedImageFileName, InMemoryUploadedFile(
+     savedImageObj.image.save(savedImageFileName, InMemoryUploadedFile(
         contentFile,
         None,
         savedImageFileName,
@@ -101,8 +94,74 @@ def save_new_image(previewImage):
         None
     ))
 
+@login_required(login_url='/login')
+def edit_image(request):
+    moon_images = MoonTemplate.objects.order_by('percent_illuminated')
+    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
+    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+    moonUploadForm = MoonUploadForm()
+    selfieUploadForm = SelfieUploadForm()
+    textureUploadForm = TextureUploadForm()
+    savedImageForm = SavedImageForm()
+    previewImage = PreviewImage.objects.all().first() or PreviewImage()
+    print(previewImage)
+    previewForm = PreviewForm(instance=previewImage)
+    extraInfo = request.POST
+    if request.method == 'POST' and "moon-upload" in request.POST:
+        moonUploadForm = MoonUploadForm(request.POST, request.FILES)
+        if moonUploadForm.is_valid():
+            moonTemplateObj = moonUploadForm.save()
+            moonUploadForm = MoonUploadForm()
+    elif request.method == 'POST' and "selfie-upload" in request.POST:
+        selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
+        if selfieUploadForm.is_valid():
+            selfieImageObj = selfieUploadForm.save()
+            selfieUploadForm = SelfieUploadForm()
+    elif request.method == 'POST' and "texture-upload" in request.POST:
+        textureUploadForm = TextureUploadForm(request.POST, request.FILES)
+        if textureUploadForm.is_valid():
+            textureImageObj = textureUploadForm.save()
+            textureUploadForm = TextureUploadForm()
+    elif request.method == 'POST' and 'save-image' in request.POST:
+        savedImageForm = SavedImageForm(request.POST)
+        if savedImageForm.is_valid():
+            savedImageObj = savedImageForm.save()
+            save_new_image(previewImage, savedImageObj)
+    previewForm = update_preview_image(request, previewImage)
+    pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
+    previewImage.image.save('temp.jpg', InMemoryUploadedFile(
+        pillow_image,
+        None,
+        'temp.jpg',
+        'image/jpeg',
+        pillow_image.tell,
+        None),
+    )
+    return render(request, 'edit_image.html',
+                  {'moon_upload_form': moonUploadForm,
+                   'selfie_upload_form': selfieUploadForm,
+                   'texture_upload_form': textureUploadForm,
+                   'preview_form': previewForm,
+                   'preview_image': previewImage,
+                   'saved_image_form': savedImageForm,
+                   'extra_info': extraInfo,
+                   'moon_images': moon_images,
+                   'selfie_images': selfie_images,
+                   'texture_images': texture_images }
+                )
 
+def show_saved_images(request):
+    savedImages = SavedImage.objects().all()
+    return render(request, 'saved_images.html',
+                  {'saved_images': savedImages})
 
+#image processing
+#helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html
+#how to add mask: https://stackoverflow.com/questions/38627870/how-to-paste-a-png-image-with-transparency-to-another-image-in-pil-without-white/38629258
+
+#A mask is an Image object where the alpha value is significant, but its green, red, and blue values are ignored.
+
+#transparency masks: http://www.leancrew.com/all-this/2013/11/transparency-with-pil/
 
 def process_image_files(previewImage, name=None, background_alpha=200, foreground_alpha=200):
     buffer = BytesIO()
@@ -166,65 +225,7 @@ def change_contrast(img, level):
 def invert_image(img):
     return ImageOps.invert(img)
 
-@login_required(login_url='/login')
-def edit_image(request):
-    moon_images = MoonTemplate.objects.order_by('percent_illuminated')
-    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
-    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
-    moonUploadForm = MoonUploadForm()
-    selfieUploadForm = SelfieUploadForm()
-    textureUploadForm = TextureUploadForm()
-    previewImage = PreviewImage.objects.all().first() or PreviewImage()
-    print(previewImage)
-    previewForm = PreviewForm(instance=previewImage)
-    extraInfo = request.POST
-    if request.method == 'POST' and "moon-upload" in request.POST:
-        moonUploadForm = MoonUploadForm(request.POST, request.FILES)
-        if moonUploadForm.is_valid():
-            moonTemplateObj = moonUploadForm.save()
-            moonUploadForm = MoonUploadForm()
-    elif request.method == 'POST' and "selfie-upload" in request.POST:
-        selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
-        if selfieUploadForm.is_valid():
-            selfieImageObj = selfieUploadForm.save()
-            selfieUploadForm = SelfieUploadForm()
-    elif request.method == 'POST' and "texture-upload" in request.POST:
-        textureUploadForm = TextureUploadForm(request.POST, request.FILES)
-        if textureUploadForm.is_valid():
-            textureImageObj = textureUploadForm.save()
-            textureUploadForm = TextureUploadForm()
-    previewForm = updatePreviewObjects(request, previewImage)
-    pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
-    previewImage.image.save('temp.jpg', InMemoryUploadedFile(
-        pillow_image,
-        None,
-        'temp.jpg',
-        'image/jpeg',
-        pillow_image.tell,
-        None
-    ))
-    return render(request, 'edit_image.html',
-                  {'moon_upload_form': moonUploadForm,
-                   'selfie_upload_form': selfieUploadForm,
-                   'texture_upload_form': textureUploadForm,
-                   'preview_form': previewForm,
-                   'preview_image': previewImage,
-                   'extra_info': extraInfo,
-                   'moon_images': moon_images,
-                   'selfie_images': selfie_images,
-                   'texture_images': texture_images }
-                      )
-#    except Exception as e:
-#        return render(request, 'error.html',
-#                      { 'error': e })
-
-#image processing
-#helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html
-#how to add mask: https://stackoverflow.com/questions/38627870/how-to-paste-a-png-image-with-transparency-to-another-image-in-pil-without-white/38629258
-
-#A mask is an Image object where the alpha value is significant, but its green, red, and blue values are ignored.
-
-#transparency masks: http://www.leancrew.com/all-this/2013/11/transparency-with-pil/
+#instagram methods
 
 def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()

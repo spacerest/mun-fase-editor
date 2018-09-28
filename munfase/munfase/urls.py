@@ -24,7 +24,8 @@ urlpatterns = [
     path('signup/', editor.views.signup),
     path('login/', editor.views.login_user),
     path('logout/', editor.views.logout_user),
-    path('', editor.views.edit_image),
+    path('edit/', editor.views.edit_image),
+    path('saved/', editor.views.show_saved_images),
     path('instagram-login', editor.views.log_into_instagram),
 ]
 if settings.DEBUG:
