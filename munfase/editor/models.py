@@ -14,9 +14,25 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 class MoonTemplate(models.Model):
     """docstring for Moon"""
+    STATE_CHOICES = (
+        ("waxing_crescent", "waning"),
+        ("first_quarter", "first quarter"),
+        ("waxing_gibbous", "waxing gibbous"),
+        ("full_moon", "full moon"),
+        ("waning_gibbous", "waning gibbous"),
+        ("last_quarter", "last quarter"),
+        ("waning_crescent", "waning crescent"),
+        ("new_moon", "new moon")
+    )
+    moon_state = models.CharField(
+        max_length = 50,
+        choices = STATE_CHOICES,
+        default = "new_moon"
+    )
     image = models.ImageField(upload_to="moon")
     thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     percent_illuminated = models.IntegerField(default = 50)
+
     def __str__(self):
         return str(self.percent_illuminated)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100)):

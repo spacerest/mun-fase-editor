@@ -16,7 +16,7 @@ class SignupForm(UserCreationForm):
 class MoonUploadForm(ModelForm):
     class Meta:
         model = MoonTemplate
-        fields = ('image', 'percent_illuminated',)
+        fields = ('image', 'percent_illuminated', 'moon_state')
 
 class SelfieUploadForm(ModelForm):
     class Meta:
