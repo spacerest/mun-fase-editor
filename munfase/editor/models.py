@@ -152,6 +152,7 @@ class PreviewImage(models.Model):
 
 class SavedImage(models.Model):
     image = models.ImageField(upload_to="final", null=True, blank=True)
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     selfie_user = models.CharField(default="@mun_fases", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)
     percent_illuminated = models.IntegerField(null=True, blank=True)
@@ -195,3 +196,15 @@ class SavedImage(models.Model):
             foreground_description = previewImg.foreground.description,
             background_description = previewImg.background.description
         )
+    def save(self, thumbnail_size=(100,100)):
+        super(SavedImage, self).save()
+        if not self.thumbnail:
+            buffer = BytesIO()
+            image = Image.open(self.image.path)
+            image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
+            image.save(fp=buffer, format='PNG')
+            image.seek(0)
+            self.thumbnail.save(self.image.name,
+                           ContentFile(buffer.getvalue()), save=True)
+            image.close()
+        return False
