@@ -19,7 +19,7 @@ a {
   color: gray;
   text-decoration: none; }
 
-input, input[type='submit'] {
+.button, input, input[type='submit'] {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid gray;
   font-size: 1em;
@@ -32,32 +32,6 @@ input:hover, input[type='submit']:hover {
   color: black;
   border: 1px solid black;
   transition: ease-in-out .2s; }
-
-.note-form {
-  width: 80%;
-  margin-left: 10%;
-  margin-right: 10%;
-  padding: 30px;
-  background-color: #FF7F50;
-  box-sizing: border-box; }
-
-.note-form textarea {
-  width: 100%; }
-
-.note-form input[name='title'] {
-  width: 100%; }
-
-.all-notes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between; }
-
-.note {
-  padding: 5px;
-  margin: 5px;
-  flex-basis: 20%;
-  flex-grow: 1;
-  background-color: lightblue; }
 
 .img-group-container {
   width: 100%;

@@ -9,6 +9,8 @@
              "background-image: url({{ MEDIA_URL  }}{{ selected_image.image }});
              background-size: cover;"></div>
 
+        <a class="button" href="{{ MEDIA_URL  }}{{ selected_image.image }}" download>download</a>
+
         <p>{{ selected_image.first_emoji }} {{ selected_image.moon_state_description }} {{ selected_image.second_emoji }}</p>
         <p>📷: {{ selected_image.selfie_username }}</p>
         <p> {{ selected_image.foreground_description  }} as moon foreground</p>
