@@ -9,14 +9,14 @@
     </div>
     <form method='POST'>
         {% csrf_token %}
-        {{ saved_image_form.as_p }}
-        <input type="submit" value="Save as a post" name="save-image">
+        <input type="submit" value="update preview image" name="color-values"/>
+        {{ preview_form.as_p }}
     </form>
     <form method='POST'>
         {% csrf_token %}
-        {{ preview_form.as_p }}
-        <input type="submit" value="update preview image" name="color-values"/>
-        </form>
+        <input type="submit" value="save current image" name="save-image"/>
+        {{ saved_image_form.as_p }}
+    </form>
     <form class="selected-images">
         <input class="selected-image-preview" style=
                       "background-image: url({{ MEDIA_URL }}{{ preview_image.moon.thumbnail }});"/>

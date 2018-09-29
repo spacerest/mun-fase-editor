@@ -26,7 +26,8 @@ urlpatterns = [
     path('logout/', editor.views.logout_user),
     path('edit/', editor.views.edit_image),
     path('saved/', editor.views.show_saved_images),
-    path('instagram-login', editor.views.log_into_instagram),
+    path('', editor.views.index),
+    path('instagram-login/', editor.views.log_into_instagram),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

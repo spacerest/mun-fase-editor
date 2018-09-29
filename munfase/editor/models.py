@@ -15,7 +15,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 class MoonTemplate(models.Model):
     """docstring for Moon"""
     STATE_CHOICES = (
-        ("waxing_crescent", "waning"),
+        ("waxing_crescent", "waxing_crescent"),
         ("first_quarter", "first quarter"),
         ("waxing_gibbous", "waxing gibbous"),
         ("full_moon", "full moon"),
@@ -154,9 +154,9 @@ class SavedImage(models.Model):
     image = models.ImageField(upload_to="final", null=True, blank=True)
     selfie_user = models.CharField(default="@mun_fases", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)
-    foreground_user = models.CharField(max_length=60, null=True, blank=True)
     percent_illuminated = models.IntegerField(null=True, blank=True)
     caption = models.TextField(default=";)", max_length = 400)
+    date_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     #caption
     ZODIAC_OPTIONS = (
@@ -173,12 +173,12 @@ class SavedImage(models.Model):
         ("♐","sagittarius"),
         ("♑","capricorn"),
     )
-    first_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius")
-    second_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius")
-    moon_state_description = models.CharField(max_length = 100, default="")
-    selfie_username = models.CharField(max_length = 100, default = "")
-    foreground_description = models.CharField(max_length = 100, default = "")
-    background_description = models.CharField(max_length = 100, default = "")
+    first_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius", null=True, blank=True)
+    second_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius", null=True, blank=True)
+    moon_state_description = models.CharField(max_length = 100, default="", null=True, blank=True)
+    selfie_username = models.CharField(max_length = 100, default = "", null=True, blank=True)
+    foreground_description = models.CharField(max_length = 100, default = "", null=True, blank=True)
+    background_description = models.CharField(max_length = 100, default = "", null=True, blank=True)
 
     def __str__(self):
         return str(self.image)
@@ -186,6 +186,12 @@ class SavedImage(models.Model):
     def create(cls, previewImg):
         return cls(
             image = previewImg.image,
-            selfie_user = previewImg.selfie.username,
+            selfie_username = previewImg.selfie.username,
             percent_illuminated = previewImg.moon.percent_illuminated,
+            moon_state_description = "{}% {}".format(
+                previewImg.moon.percent_illuminated,
+                previewImg.moon.moon_state
+            ),
+            foreground_description = previewImg.foreground.description,
+            background_description = previewImg.background.description
         )

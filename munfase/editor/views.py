@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm, CaptionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -104,9 +104,7 @@ def edit_image(request):
     textureUploadForm = TextureUploadForm()
     savedImageForm = SavedImageForm()
     previewImage = PreviewImage.objects.all().first() or PreviewImage()
-    print(previewImage)
     previewForm = PreviewForm(instance=previewImage)
-    extraInfo = request.POST
     if request.method == 'POST' and "moon-upload" in request.POST:
         moonUploadForm = MoonUploadForm(request.POST, request.FILES)
         if moonUploadForm.is_valid():
@@ -125,8 +123,9 @@ def edit_image(request):
     elif request.method == 'POST' and 'save-image' in request.POST:
         savedImageForm = SavedImageForm(request.POST)
         if savedImageForm.is_valid():
-            savedImageObj = savedImageForm.save()
+            savedImageObj = SavedImage.create(previewImage)
             save_new_image(previewImage, savedImageObj)
+            return redirect('/saved')
     previewForm = update_preview_image(request, previewImage)
     pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
     previewImage.image.save('temp.jpg', InMemoryUploadedFile(
@@ -142,19 +141,36 @@ def edit_image(request):
                    'selfie_upload_form': selfieUploadForm,
                    'texture_upload_form': textureUploadForm,
                    'preview_form': previewForm,
-                   'preview_image': previewImage,
                    'saved_image_form': savedImageForm,
-                   'extra_info': extraInfo,
+                   'preview_image': previewImage,
                    'moon_images': moon_images,
                    'selfie_images': selfie_images,
                    'texture_images': texture_images }
                 )
 
+@login_required(login_url='/login')
 def show_saved_images(request):
-    savedImages = SavedImage.objects().all()
+    savedImages = SavedImage.objects.all()
+    if request.method == "GET" and "image-selection" in request.GET:
+        selectedImage = SavedImage.objects.filter(pk=request.GET.get('image-selection')).first()
+        captionForm = CaptionForm(instance=selectedImage)
+    elif request.method == "POST" and "save-info" in request.POST:
+        selectedImage = SavedImage.objects.filter(pk=request.POST.get('id')).first()
+        print(request)
+        print(request.POST)
+        captionForm = CaptionForm(request.POST, instance=selectedImage)
+        if captionForm.is_valid():
+            selectedImage = captionForm.save()
+    else:
+        selectedImage = SavedImage.objects.all().latest('date_created')
+        captionForm = CaptionForm(instance=selectedImage)
     return render(request, 'saved_images.html',
-                  {'saved_images': savedImages})
+                  {'saved_images': savedImages,
+                   'caption_form': captionForm,
+                   'selected_image': selectedImage})
 
+def index(request):
+    return render(request, 'index.html')
 #image processing
 #helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html
 #how to add mask: https://stackoverflow.com/questions/38627870/how-to-paste-a-png-image-with-transparency-to-another-image-in-pil-without-white/38629258

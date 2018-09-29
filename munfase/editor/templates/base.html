@@ -9,7 +9,9 @@
 <body>
     <nav>
         {% if request.user.is_authenticated %}
-            <p class="welcome">welcome, hey</p>
+        <a href="/">welcome, hey</a>
+            <a href="/edit">edit</a>
+            <a href="/saved">saved</a>
             <a href="/logout/">Logout</a>
         {% else %}
             <a href="/login/">Login</a>
