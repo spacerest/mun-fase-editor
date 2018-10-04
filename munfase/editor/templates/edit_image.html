@@ -36,7 +36,7 @@
                       "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
                 <input type="submit" value="{{ moon_image.id }}" name="moon-selection"/>
             </label>
-            <p>{{ moon_image.percent_illuminated }}% {{ moon_image.moon_state }}</p>
+            <span>{{ moon_image.percent_illuminated }}% {{ moon_image.moon_state }}</span>
             {% endfor %}
             </form>
         {% endif %}

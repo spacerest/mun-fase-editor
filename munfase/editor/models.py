@@ -76,7 +76,7 @@ def get_upload_path(cls, filename):
 
 class UserUploadedImage(models.Model):
     """images that are uploaded by a user, resized, and combined to make final image"""
-    image = models.ImageField(upload_to=get_upload_path)
+    image = models.ImageField(upload_to=get_upload_path, null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     date_uploaded = models.DateField(auto_now_add=True)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100)):
