@@ -187,11 +187,11 @@ class SavedImage(models.Model):
     def create(cls, previewImg):
         return cls(
             image = previewImg.image,
-            selfie_username = previewImg.selfie.username,
+            selfie_username = "@{}".format(previewImg.selfie.username),
             percent_illuminated = previewImg.moon.percent_illuminated,
-            moon_state_description = "{}% {}".format(
+            moon_state_description = "{}, {}% illuminated".format(
+                previewImg.moon.moon_state,
                 previewImg.moon.percent_illuminated,
-                previewImg.moon.moon_state
             ),
             foreground_description = previewImg.foreground.description,
             background_description = previewImg.background.description
