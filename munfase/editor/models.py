@@ -185,16 +185,27 @@ class SavedImage(models.Model):
         return str(self.image)
     @classmethod
     def create(cls, previewImg):
-        return cls(
-            image = previewImg.image,
-            selfie_username = "@{}".format(previewImg.selfie.username),
-            percent_illuminated = previewImg.moon.percent_illuminated,
-            moon_state_description = "{}, {}% illuminated".format(
+        image = previewImg.image
+        selfie_username = "@{}".format(previewImg.selfie.username)
+        moon_state_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,
                 previewImg.moon.percent_illuminated,
-            ),
-            foreground_description = previewImg.foreground.description,
+            )
+        if previewImg.foreground:
+            foreground_description = previewImg.foreground.description
+        else:
+            foreground_description = "nothing"
+        if previewImg.background:
             background_description = previewImg.background.description
+        else:
+            background_description = "nothing"
+        return cls(
+            image = image,
+            selfie_username = selfie_username,
+            percent_illuminated = previewImg.moon.percent_illuminated,
+            moon_state_description = moon_state_description,
+            foreground_description = foreground_description,
+            background_description = background_description
         )
     def save(self, thumbnail_size=(100,100)):
         super(SavedImage, self).save()
