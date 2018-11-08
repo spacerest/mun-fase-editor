@@ -37,14 +37,7 @@
             {% endfor %}
             </form>
         {% endif %}
-        <form method="post" enctype="multipart/form-data" >
-            {% csrf_token %}
-            <div class="media">
-                {{ moon_upload_form.as_p }}
-                <input type="submit" value="Upload" name="moon-upload">
-              <br>
-          </form>
-        <h1>Choose the mirror selfie:</h1>
+       <h1>Choose the mirror selfie:</h1>
         {% if selfie_images %}
         <form method="post" class="img-group-container">
             {% csrf_token %}
@@ -56,22 +49,8 @@
             {% endfor %}
             </form>
         {% endif %}
-        <form method="post" enctype="multipart/form-data" >
-            {% csrf_token %}
-            <div class="media">
-                {{ selfie_upload_form.as_p }}
-                <input type="submit" value="Upload" name="selfie-upload">
-              <br>
-          </form>
-        <h1>Texture images</h1>
-            <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="media">
-                {{ texture_upload_form.as_p }}
-                <input type="submit" value="Upload" name="texture-upload" >
-              <br>
-          </form>
-        <h2>Choose the moon foreground:</h2>
+       <h1>Texture images</h1>
+       <h2>Choose the moon foreground:</h2>
         {% if texture_images %}
             <form method="post" class="img-group-container" name="foreground">
             {% csrf_token %}

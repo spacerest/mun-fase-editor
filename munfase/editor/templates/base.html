@@ -8,6 +8,8 @@
 </head>
 <body>
     <nav>
+        <a href="/edit/">Edit</a>
+        <a href="/upload/">Upload</a>
         {% if request.user.is_authenticated %}
             <p class="welcome">welcome, hey</p>
             <a href="/logout/">Logout</a>
