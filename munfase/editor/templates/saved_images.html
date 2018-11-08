@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+
+    {% if selected_image %}
+        <div class="open-cv-container" style=
+             "background-image: url({{ MEDIA_URL  }}{{ selected_image.image }});
+             background-size: cover;"></div>
+
+        <a class="button" href="{{ MEDIA_URL  }}{{ selected_image.image }}" download>download</a>
+
+        <p>{{ selected_image.first_emoji }} {{ selected_image.moon_state_description }} {{ selected_image.second_emoji }}</p>
+        <p>📷: {{ selected_image.selfie_username }}</p>
+        <p> {{ selected_image.foreground_description  }} as moon foreground</p>
+        <p> {{ selected_image.background_description  }} behind</p>
+
+        {% if caption_form %}
+          <form method='POST'>
+                {% csrf_token %}
+                {{ caption_form.as_p }}
+                <input type="hidden" name="id" value={{ selected_image.id }} />
+                <input type="submit" value="update image info" name="save-info" />
+                <input type="submit" value="cancel" name="cancel" />
+          </form>
+       {% endif %}
+    {% endif %}
+        {% if saved_images %}
+       <h2>Here are your saved images:</h2>
+            <form method="GET" class="img-group-container" name="texture">
+            {% for saved_image in saved_images %}
+                <label class="img-select" for='saved-{{ saved_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ saved_image.thumbnail }});">
+                <input type="submit" value="{{ saved_image.id }}" name="image-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% else %}
+            <p>please go to <a href="edit">edit</a> to create a new image. Currently none here!</p>
+        {% endif %}
+{% endblock %}

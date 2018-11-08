@@ -24,6 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = __keys__.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'munfases.space','www.munfases.space']
@@ -127,4 +128,9 @@ STATIC_URL = '/static/'
 
 MEDIA_URL= '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if DEBUG:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    MEDIA_ROOT = '/usr/share/nginx/websites/munfases/media'
+
+STATIC_ROOT = '/usr/share/nginx/websites/munfases/static'
