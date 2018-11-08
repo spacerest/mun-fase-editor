@@ -4,7 +4,7 @@ from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUp
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, SavedImage
+from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, Collage
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
@@ -12,6 +12,7 @@ from munfase.settings import BASE_DIR
 from munfase import settings
 from editor.instagram_modules import login as ig
 import datetime
+import pdb
 
 
 #for saving edited files to model
@@ -60,51 +61,49 @@ def logout_user(request):
     logout(request)
     return redirect('/login')
 
-def update_preview_image(request, previewImage):
-    if request.method == 'POST' and "selfie-selection" in request.POST:
-        previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
-    elif request.method == 'POST' and "moon-selection" in request.POST:
-        previewImage.moon = MoonTemplate.objects.filter(pk=request.POST.get('moon-selection')).first()
-    elif request.method == 'POST' and "foreground-selection" in request.POST:
-        previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
-    elif request.method == 'POST' and "background-selection" in request.POST:
-        previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
-    elif request.method == 'POST' and 'color-values' in request.POST:
-        previewForm = PreviewForm(request.POST, instance=previewImage)
-        if previewForm.is_valid():
-            previewImage = previewForm.save()
-    return PreviewForm(instance=previewImage)
-
-def save_new_image(previewImage, savedImageObj):
-     buffer = BytesIO()
-     previewImageFile = Image.open(previewImage.image)
-     previewImageFile.save(fp=buffer, format='PNG')
-     contentFile = ContentFile(buffer.getvalue())
-     savedImageFileName = "{}_{}_{}.jpg".format(
-            previewImage.moon.percent_illuminated,
-            previewImage.selfie.username,
-            datetime.date.today().strftime("%Y%m%d%h%M%S")
-        )
-     savedImageObj.image.save(savedImageFileName, InMemoryUploadedFile(
-        contentFile,
-        None,
-        savedImageFileName,
-        'image/jpeg',
-        contentFile.tell,
-        None
-    ))
-
 @login_required(login_url='/login')
 def edit_image(request):
-    moon_images = MoonTemplate.objects.order_by('percent_illuminated')
-    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
-    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+    try:
+        moon_images = MoonTemplate.objects.order_by('percent_illuminated')
+        selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
+        texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+        previewImage = PreviewImage.objects.all().first() or PreviewImage()
+        previewForm = PreviewForm(instance=previewImage)
+        extraInfo = request.POST
+        if request.method == 'POST' and "selfie-selection" in request.POST:
+            previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
+        elif request.method == 'POST' and "moon-selection" in request.POST:
+            previewImage.moon = MoonTemplate.objects.filter(pk=request.POST.get('moon-selection')).first()
+        elif request.method == 'POST' and "foreground-selection" in request.POST:
+            previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
+        elif request.method == 'POST' and "background-selection" in request.POST:
+            previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
+        elif request.method == 'POST' and 'color-values' in request.POST:
+            previewForm = PreviewForm(request.POST, instance=previewImage)
+        elif request.method == 'POST' and 'color-values' in request.POST:
+            previewForm = PreviewForm(request.POST, instance=previewImage)
+        if previewForm.is_valid():
+            previewImage = previewForm.save()
+        previewImage.process_image_files(name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
+        return render(request, 'edit_image.html',
+                      {'preview_form': previewForm,
+                       'preview_image': previewImage,
+                       'extra_info': extraInfo,
+                       'moon_images': moon_images,
+                       'selfie_images': selfie_images,
+                       'texture_images': texture_images }
+                      )
+    except Exception as e:
+        return render(request, 'error.html',
+                      { 'error': dir(e) })
+
+def upload_image(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
     textureUploadForm = TextureUploadForm()
-    savedImageForm = SavedImageForm()
-    previewImage = PreviewImage.objects.all().first() or PreviewImage()
-    previewForm = PreviewForm(instance=previewImage)
+    moon_images = MoonTemplate.objects.order_by('percent_illuminated')
+    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
+    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
     if request.method == 'POST' and "moon-upload" in request.POST:
         moonUploadForm = MoonUploadForm(request.POST, request.FILES)
         if moonUploadForm.is_valid():
@@ -120,128 +119,14 @@ def edit_image(request):
         if textureUploadForm.is_valid():
             textureImageObj = textureUploadForm.save()
             textureUploadForm = TextureUploadForm()
-    elif request.method == 'POST' and 'save-image' in request.POST:
-        savedImageForm = SavedImageForm(request.POST)
-        if savedImageForm.is_valid():
-            savedImageObj = SavedImage.create(previewImage)
-            save_new_image(previewImage, savedImageObj)
-            return redirect('/saved')
-    previewForm = update_preview_image(request, previewImage)
-    pillow_image = process_image_files(previewImage, name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
-    previewImage.image.save('temp.jpg', InMemoryUploadedFile(
-        pillow_image,
-        None,
-        'temp.jpg',
-        'image/jpeg',
-        pillow_image.tell,
-        None),
-    )
-    return render(request, 'edit_image.html',
-                  {'moon_upload_form': moonUploadForm,
-                   'selfie_upload_form': selfieUploadForm,
-                   'texture_upload_form': textureUploadForm,
-                   'preview_form': previewForm,
-                   'saved_image_form': savedImageForm,
-                   'preview_image': previewImage,
-                   'moon_images': moon_images,
+    return render(request, 'upload_image.html',
+                  {'moon_images': moon_images,
                    'selfie_images': selfie_images,
-                   'texture_images': texture_images }
-                )
-
-@login_required(login_url='/login')
-def show_saved_images(request):
-    savedImages = SavedImage.objects.all()
-    if request.method == "GET" and "image-selection" in request.GET:
-        selectedImage = SavedImage.objects.filter(pk=request.GET.get('image-selection')).first()
-        captionForm = CaptionForm(instance=selectedImage)
-    elif request.method == "POST" and "save-info" in request.POST:
-        selectedImage = SavedImage.objects.filter(pk=request.POST.get('id')).first()
-        print(request)
-        print(request.POST)
-        captionForm = CaptionForm(request.POST, instance=selectedImage)
-        if captionForm.is_valid():
-            selectedImage = captionForm.save()
-    else:
-        selectedImage = SavedImage.objects.all().latest('date_created')
-        captionForm = CaptionForm(instance=selectedImage)
-    return render(request, 'saved_images.html',
-                  {'saved_images': savedImages,
-                   'caption_form': captionForm,
-                   'selected_image': selectedImage})
-
-def index(request):
-    return render(request, 'index.html')
-#image processing
-#helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html
-#how to add mask: https://stackoverflow.com/questions/38627870/how-to-paste-a-png-image-with-transparency-to-another-image-in-pil-without-white/38629258
-
-#A mask is an Image object where the alpha value is significant, but its green, red, and blue values are ignored.
-
-#transparency masks: http://www.leancrew.com/all-this/2013/11/transparency-with-pil/
-
-def process_image_files(previewImage, name=None, background_alpha=200, foreground_alpha=200):
-    buffer = BytesIO()
-    if previewImage.selfie:
-        selfie = Image.open(previewImage.selfie.image)
-        moon_shaped_selfie = Image.open(previewImage.selfie.image)
-    else:
-        selfie = Image.new('RGB', (1000,1000), 'black')
-        moon_shaped_selfie = Image.new('RGB', (1000,1000), 'black')
-    selfie = ImageOps.fit(selfie, (1000, 1000), Image.ANTIALIAS)
-    moon_shaped_selfie = ImageOps.fit(moon_shaped_selfie, (1000,1000), Image.ANTIALIAS)
-    if previewImage.moon:
-        moon_mask = Image.open(previewImage.moon.image, 'r')
-        moon_mask_transparent = Image.open(previewImage.moon.image, 'r')
-    else:
-        moon_mask = Image.new('RGB', (1000,1000), 'black')
-        moon_mask_transparent = Image.new('RGB', (1000,1000), 'black')
-    moon_mask = moon_mask.convert("L")
-    moon_mask_transparent = moon_mask_transparent.point(lambda i: min(i * 25, foreground_alpha))
-    moon_mask_transparent = moon_mask_transparent.convert("L")
-
-    if previewImage.background:
-        background = Image.open(previewImage.background.image, 'r')
-        background = ImageOps.fit(background, (1000,1000), Image.ANTIALIAS)
-    else:
-        background= Image.new('RGB',(1000,1000),'black')
-
-    if previewImage.foreground:
-        moon_shaped_foreground = Image.open(previewImage.foreground.image)
-        moon_shaped_foreground = ImageOps.fit(moon_shaped_foreground, (1000,1000), Image.ANTIALIAS)
-    else:
-        moon_shaped_foreground = Image.new('RGB', (1000,1000), 'black')
-    if previewImage.background_inverted:
-        background = invert_image(background)
-    if previewImage.foreground_inverted:
-        moon_shaped_foreground = invert_image(moon_shaped_foreground)
-    moon_shaped_selfie.putalpha(moon_mask)
-    background_mask = background.point(lambda i: background_alpha)
-    background_mask = background_mask.convert("L")
-
-    moon_shaped_foreground.putalpha(moon_mask_transparent)
-
-    #put transparent background over selfie
-    selfie.paste(background, (0,0), mask=background_mask)
-
-    #reput moon shaped selfie on top of transparent background
-    selfie.paste(moon_shaped_selfie, (0,0), mask=moon_shaped_selfie)
-
-    #put foreground over moon
-    selfie.paste(moon_shaped_foreground, (0,0), mask=moon_mask_transparent)
-    selfie.save(fp=buffer, format='PNG')
-    return ContentFile(buffer.getvalue())
-
-#https://stackoverflow.com/questions/42045362/change-contrast-of-image-in-pil
-def change_contrast(img, level):
-    factor = (259 * (level + 255)) / (255 * (259 - level))
-    def contrast(c):
-        return 128 + factor * (c - 128)
-    return img.point(contrast)
-
-def invert_image(img):
-    return ImageOps.invert(img)
-
-#instagram methods
+                   'texture_images': texture_images,
+                   'moon_upload_form': moonUploadForm,
+                   'selfie_upload_form': selfieUploadForm,
+                   'texture_upload_form': textureUploadForm }
+                 )
 
 def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()

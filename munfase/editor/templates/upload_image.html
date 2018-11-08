@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+
+        <h1>Upload a new texture image:</h1>
+            <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="media">
+                {{ texture_upload_form.as_p }}
+                <input type="submit" value="Upload" name="texture-upload" >
+              <br>
+          </form>
+
+        {% if texture_images %}
+            {% for texture_image in texture_images %}
+                <label class="img-select" for='foreground-{{ texture_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ texture_image.thumbnail }});">
+                <input type="submit" value="{{ texture_image.id }}" name="foreground-selection"/>
+            </label>
+            {% endfor %}
+            </form>
+        {% endif %}
+
+
+
+        <h1>Upload a new mirror selfie:</h1>
+        <form method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="media">
+                {{ selfie_upload_form.as_p }}
+                <input type="submit" value="Upload" name="selfie-upload">
+              <br>
+          </form>
+
+        {% if selfie_images %}
+            {% for selfie_image in selfie_images %}
+            <label class="img-select" for='selfie-{{ selfie_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ selfie_image.thumbnail }});">
+                <input type="submit" value="{{ selfie_image.id }}" name="selfie-selection"/>
+            </label>
+            {% endfor %}
+        {% endif %}
+
+
+        <h1>Upload a new moon phase template:</h1>
+        <form method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="media">
+                {{ moon_upload_form.as_p }}
+                <input type="submit" value="Upload" name="moon-upload">
+              <br>
+          </form>
+        {% if moon_images %}
+            {% for moon_image in moon_images %}
+            <label class="img-select" for='moon-{{ moon_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
+                <input type="submit" value="{{ moon_image.id }}" name="moon-selection"/>
+            </label>
+            {% endfor %}
+        {% endif %}
+
+
+
+
+        {% endblock %}

@@ -35,8 +35,8 @@ class PreviewForm(ModelForm):
 
 class SavedImageForm(ModelForm):
     class Meta:
-        model = SavedImage
-        fields = ()
+        model = Collage
+        fields = ('image',)
 
 class CaptionForm(ModelForm):
     class Meta:

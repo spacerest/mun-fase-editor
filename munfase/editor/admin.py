@@ -7,5 +7,5 @@ admin.site.register(MoonTemplate)
 admin.site.register(TextureImage)
 admin.site.register(SelfieImage)
 admin.site.register(PreviewImage)
-admin.site.register(SavedImage)
+admin.site.register(Collage)
 
