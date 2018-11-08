@@ -37,8 +37,3 @@ class SavedImageForm(ModelForm):
     class Meta:
         model = Collage
         fields = ('image',)
-
-class CaptionForm(ModelForm):
-    class Meta:
-        model = SavedImage
-        fields = ('first_emoji', 'second_emoji', 'moon_state_description', 'selfie_username', 'foreground_description', 'background_description')
