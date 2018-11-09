@@ -8,9 +8,8 @@ def login():
     ig.login()
     return ig
 
-def post_image(obj):
+def post_image(image_path, caption):
     ig = login()
-    caption = "test"
-    photo_path = obj.image
+    photo_path = image_path
     ig.uploadPhoto(photo_path, caption=caption)
 

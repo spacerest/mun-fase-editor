@@ -164,11 +164,11 @@ def delete_image(request, pk, template_name="upload_image.html"):
     else:
         return render(request, template_name, {'object': image})
 
-
 def post_to_instagram(request, pk):
-    #post = get_object_or_404(Collage, pk=pk)
-    #instagram_user = ig.post_image(post.image)
-    #data['instagram_user'] = instagram_user
+    post = get_object_or_404(Collage, pk=pk)
+    instagram_user = ig.post_image(post.image.path, "test")
+    data = {}
+    data['instagram_user'] = instagram_user
     return render(request, 'post_confirmation.html', {'data': data})
 
 def update_caption(request, pk):

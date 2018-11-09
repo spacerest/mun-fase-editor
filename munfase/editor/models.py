@@ -202,9 +202,10 @@ class Collage(UserUploadedImage):
     def make_image(self, previewImg):
         buffer = BytesIO()
         previewImageFile = Image.open(previewImg.image)
-        previewImageFile.save(fp=buffer, format='PNG')
+        previewImageFile.convert("RGB")
+        previewImageFile.save(fp=buffer, format='JPEG')
         contentFile = ContentFile(buffer.getvalue())
-        collageFileName = "{}_{}_{}.png".format(
+        collageFileName = "{}_{}_{}.jpg".format(
                previewImg.moon.percent_illuminated,
                previewImg.selfie.username,
                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -213,7 +214,7 @@ class Collage(UserUploadedImage):
            contentFile,
            None,
            collageFileName,
-           'image/png',
+           'image/jpeg',
            contentFile.tell,
            None
         ))
@@ -242,6 +243,7 @@ class Collage(UserUploadedImage):
             foreground_description = previewImg.foreground.description,
             percent_illuminated = previewImg.moon.percent_illuminated
         )
+
 
 
 #image processing

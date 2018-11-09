@@ -6,7 +6,7 @@
 
     {% if selected_image %}
 
-        <form action="{% url 'post_to_instagram' %}" method="post">
+        <form action="{% url 'post_to_instagram' pk=selected_image.id %}" method="post">
             {% csrf_token %}
             <input type="submit" value="post to instagram now" name="instagram-post" />
         </form>
