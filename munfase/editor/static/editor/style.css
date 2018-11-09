@@ -65,4 +65,7 @@ label > input[type="submit"] {
 .container {
   display: inline-block; }
 
+form {
+  display: inline-block; }
+
 /*# sourceMappingURL=style.css.map */

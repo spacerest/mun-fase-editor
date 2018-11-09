@@ -4,13 +4,14 @@ from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUp
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, Collage
+from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, Collage, UserUploadedImage
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
 from munfase.settings import BASE_DIR
 from munfase import settings
 from editor.instagram_modules import login as ig
+from django.shortcuts import get_object_or_404
 import datetime
 import pdb
 
@@ -106,7 +107,7 @@ def saved_images(request):
                   { 'collages': collages })
 
 @login_required(login_url='/login')
-def upload_image(request):
+def manage_images(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
     textureUploadForm = TextureUploadForm()
@@ -145,3 +146,11 @@ def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()
     instagram_user = ig.post_image(previewImage)
     return render(request, 'post_uploaded.html', {'instagram_user': instagram_user})
+
+def delete_image(request, pk, template_name="upload_image.html"):
+    image = get_object_or_404(UserUploadedImage, pk=pk)
+    if request.method=='POST':
+        image.delete()
+        return redirect('/image-library/')
+    else:
+        return render(request, template_name, {'object': image})
