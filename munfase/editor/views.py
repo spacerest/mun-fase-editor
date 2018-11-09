@@ -166,7 +166,8 @@ def delete_image(request, pk, template_name="upload_image.html"):
 
 def post_to_instagram(request, pk):
     post = get_object_or_404(Collage, pk=pk)
-    instagram_user = ig.post_image(post.image.path, "test")
+    caption = "{}\n*\n{}\n*\n{}\n*\n{}".format(post.selfie_user, post.background_description, post.foreground_description, post.percent_illuminated)
+    instagram_user = ig.post_image(post.image.path, caption)
     data = {}
     data['instagram_user'] = instagram_user
     return render(request, 'post_confirmation.html', {'data': data})
