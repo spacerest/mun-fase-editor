@@ -29,7 +29,9 @@ urlpatterns = [
     path('image-library/', editor.views.manage_images, name="image_library"),
     path('saved/', editor.views.saved_images, name="saved_images"),
     path('delete/<int:pk>', editor.views.delete_image, name="delete_image"),
-    path('instagram-login', editor.views.log_into_instagram),
+    path('post/', editor.views.post_to_instagram, name="post_to_instagram"),
+    path('instagram-login/', editor.views.log_into_instagram),
+    path('update-caption/<int:pk>', editor.views.update_caption, name="update_caption")
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

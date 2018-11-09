@@ -5,6 +5,12 @@
 <div class="container">
 
     {% if selected_image %}
+
+        <form action="{% url 'post_to_instagram' %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="post to instagram now" name="instagram-post" />
+        </form>
+
         <div class="open-cv-container" style=
              "background-image: url({{ MEDIA_URL  }}{{ selected_image.image }});
              background-size: cover;"></div>
@@ -15,6 +21,12 @@
         <p>📷: {{ selected_image.selfie_username }}</p>
         <p> {{ selected_image.foreground_description  }} as moon foreground</p>
         <p> {{ selected_image.background_description  }} behind</p>
+
+        <form action="{% url 'update_caption' pk=selected_image.id %}" method="post">
+            {% csrf_token %}
+            {{ caption_form.as_p }}
+            <input type="submit" value="Update Caption Info" />
+        </form>
 
 
     {% endif %}

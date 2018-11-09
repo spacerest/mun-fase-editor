@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm, CaptionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -103,8 +103,18 @@ def edit_image(request):
 
 def saved_images(request):
     collages = Collage.objects.all()
+    if request.method == "POST" and "update-caption" in request.POST:
+        selectedImage = get
+    if request.method == "GET" and "image-selection" in request.GET:
+        selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).first()
+    else:
+        selectedImage = Collage.objects.first()
+    captionForm = CaptionForm(instance=selectedImage)
     return render(request, 'saved_images.html',
-                  { 'collages': collages })
+                  { 'collages': collages,
+                    'selected_image': selectedImage,
+                    'caption_form': captionForm }
+                  )
 
 @login_required(login_url='/login')
 def manage_images(request):
@@ -144,8 +154,7 @@ def home(request):
 
 def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()
-    instagram_user = ig.post_image(previewImage)
-    return render(request, 'post_uploaded.html', {'instagram_user': instagram_user})
+    return render(request, 'post_confirmation.html', {'instagram_user': instagram_user})
 
 def delete_image(request, pk, template_name="upload_image.html"):
     image = get_object_or_404(UserUploadedImage, pk=pk)
@@ -154,3 +163,17 @@ def delete_image(request, pk, template_name="upload_image.html"):
         return redirect('/image-library/')
     else:
         return render(request, template_name, {'object': image})
+
+
+def post_to_instagram(request, pk):
+    #post = get_object_or_404(Collage, pk=pk)
+    #instagram_user = ig.post_image(post.image)
+    #data['instagram_user'] = instagram_user
+    return render(request, 'post_confirmation.html', {'data': data})
+
+def update_caption(request, pk):
+    collage = get_object_or_404(Collage, pk=pk)
+    form = CaptionForm(request.POST or None, instance = collage)
+    if form.is_valid():
+        form.save()
+    return redirect('saved_images')
