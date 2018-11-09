@@ -4,26 +4,4 @@
 
     <h1>HI {{request.user}}!</h1>
 
-    <form class="note-form" method="POST">
-
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <input type="submit" name="save" value="Save Note">
-
-    </form>
-
-    <h2>My Notes</h2>
-    <div class="all-notes">
-        {% for note in notes %}
-        <div class="note">
-            <h3 class="note-title">{{note.title}}</h3>
-            <p class="note-date">{{note.created|date:'H:i Y-m-d'}}</p>
-            <p class="note-body">{{note.body}}</p>
-        </div>
-        {% endfor %}
-    </div>
-
-
 {% endblock content %}

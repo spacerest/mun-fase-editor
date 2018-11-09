@@ -78,8 +78,11 @@ def edit_image(request):
             previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
         elif request.method == 'POST' and "background-selection" in request.POST:
             previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
-        elif request.method == 'POST' and 'color-values' in request.POST:
+        elif request.method == 'POST' and 'save-image' in request.POST:
             previewForm = PreviewForm(request.POST, instance=previewImage)
+            collage = Collage.create(previewImage)
+            collage.make_image(previewImage)
+            return redirect('/saved/')
         elif request.method == 'POST' and 'color-values' in request.POST:
             previewForm = PreviewForm(request.POST, instance=previewImage)
         if previewForm.is_valid():
@@ -95,8 +98,14 @@ def edit_image(request):
                       )
     except Exception as e:
         return render(request, 'error.html',
-                      { 'error': dir(e) })
+                      { 'error': "{}, {}".format(e, e.filename) })
 
+def saved_images(request):
+    collages = Collage.objects.all()
+    return render(request, 'saved_images.html',
+                  { 'collages': collages })
+
+@login_required(login_url='/login')
 def upload_image(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
@@ -127,6 +136,10 @@ def upload_image(request):
                    'selfie_upload_form': selfieUploadForm,
                    'texture_upload_form': textureUploadForm }
                  )
+
+@login_required(login_url='/login')
+def home(request):
+    return render(request, 'home.html')
 
 def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()

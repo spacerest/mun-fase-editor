@@ -28,8 +28,72 @@ from django.dispatch import receiver
 
 
 # Create your models here.
+#
+#
+def get_upload_path(cls, filename):
+    return cls.__class__.__name__ + "/" + filename
 
-class MoonTemplate(models.Model):
+class UserUploadedImage(models.Model):
+    """images that are uploaded by a user, resized, and combined to make final image"""
+    image = models.ImageField(upload_to=get_upload_path, null=True)
+    thumbnail = models.ImageField(upload_to="thumbnails", null=True)
+    date_uploaded = models.DateField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        buffer = BytesIO()
+        image = Image.open(self.image)
+        image = ImageOps.fit(image, (100, 100), Image.ANTIALIAS)
+        image.save(fp=buffer, format='PNG')
+        thumbnailBuffer = ContentFile(buffer.getvalue())
+        self.thumbnail.save(self.image.name,
+                            InMemoryUploadedFile(
+                                thumbnailBuffer,
+                                None,
+                                self.image.name,
+                                'image/jpeg',
+                                thumbnailBuffer.tell,
+                                None
+                            ), save=False)
+    def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
+        super(UserUploadedImage, self).save(*args, **kwargs)
+        if not self.id:
+            return
+
+        #resize the fullsize image
+        image_width = self.image.width
+        image_height = self.image.height
+        new_width = image_size[0]
+        new_height = image_size[1]
+        image_filename = str(self.image.path)
+        image = Image.open(image_filename)
+        if (image_width < image_height):
+            new_height = image_size[0]
+            new_width = int(image_size[1] * image_height / image_width)
+        elif (image_height < image_width):
+            new_width = image_size[1]
+            new_height = int(image_size[0] * image_height / image_width)
+        image = image.resize((new_width, new_height), Image.ANTIALIAS)
+        print(image_filename)
+        image.save(image_filename)
+
+        #make a separate thumbnail
+        buffer = BytesIO()
+        image = Image.open(self.image.path)
+        image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
+        image.save(fp=buffer, format='PNG')
+        image.seek(0)
+        self.thumbnail.save(self.image.name,
+                       ContentFile(buffer.getvalue()), save=False)
+        image.close()
+        super(UserUploadedImage, self).save(*args, **kwargs)
+    def delete(self, *args, **kwargs):
+        if self.image:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
+        if self.thumbnail:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.thumbnail.name))
+        super(UserUploadedImage,self).delete(*args,**kwargs)
+
+
+class MoonTemplate(UserUploadedImage):
     """docstring for Moon"""
     STATE_CHOICES = (
         ("waxing_crescent", "waxing_crescent"),
@@ -46,101 +110,10 @@ class MoonTemplate(models.Model):
         choices = STATE_CHOICES,
         default = "new_moon"
     )
-    image = models.ImageField(upload_to="moon")
-    thumbnail = models.ImageField(upload_to="thumbnails", null=True, blank=True)
     percent_illuminated = models.IntegerField(default = 50)
 
     def __str__(self):
         return str(self.percent_illuminated)
-    def save(self, image_size=(1000,1000), thumbnail_size=(100,100)):
-        super(MoonTemplate, self).save()
-        if not self.id:
-            return
-        image_width = self.image.width
-        image_height = self.image.height
-        new_width = image_size[0]
-        new_height = image_size[1]
-        image_filename = str(self.image.path)
-        image = Image.open(image_filename)
-        if (image_width < image_height):
-            new_width = image_size[0]
-            new_height = int(image_size[1] * image_height / image_width)
-        elif (image_height < image_width):
-            new_height = image_size[1]
-            new_width = int(image_size[0] * image_height / image_width)
-        image = image.resize((new_width, new_height), Image.ANTIALIAS)
-        image.save(image_filename)
-        if not self.thumbnail:
-            buffer = BytesIO()
-            image = Image.open(self.image.path)
-            image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
-            image.save(fp=buffer, format='PNG')
-            image.seek(0)
-            self.thumbnail.save(self.image.name,
-                           ContentFile(buffer.getvalue()), save=True)
-            image.close()
-        return False
-
-    def delete(self, *args, **kwargs):
-        if self.image:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
-        if self.thumbnail:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.thumbnail.name))
-        super(MoonTemplate,self).delete(*args,**kwargs)
-
-def get_upload_path(cls, filename):
-    return cls.__class__.__name__ + "/" + filename
-
-class UserUploadedImage(models.Model):
-    """images that are uploaded by a user, resized, and combined to make final image"""
-    image = models.ImageField(upload_to=get_upload_path, null=True)
-    thumbnail = models.ImageField(upload_to="thumbnails", null=True)
-    date_uploaded = models.DateField(auto_now_add=True)
-    def save(self, *args, **kwargs):
-        print("1")
-        buffer = BytesIO()
-        print("2")
-        image = Image.open(self.image)
-        print("3")
-        image = ImageOps.fit(image, (100, 100), Image.ANTIALIAS)
-        print("4")
-        image.save(fp=buffer, format='PNG')
-        print("5")
-        thumbnailBuffer = ContentFile(buffer.getvalue())
-        print("6")
-        self.thumbnail.save(self.image.name,
-                            InMemoryUploadedFile(
-                                thumbnailBuffer,
-                                None,
-                                self.image.name,
-                                'image/jpeg',
-                                thumbnailBuffer.tell,
-                                None
-                            ), save=False)
-        print(self.thumbnail)
-        super(UserUploadedImage, self).save(*args, **kwargs)
-        print("7")
-
-
-
-@receiver(post_save, sender=UserUploadedImage, dispatch_uid="make_thumbnail")
-def make_thumbnail(sender, instance, **kwargs):
-    print("RECEIVINGGGGGGGGGG")
-    buffer = BytesIO()
-    image = Image.open(instance.image)
-    image = ImageOps.fit(image, (100, 100), Image.ANTIALIAS)
-    image.save(fp=buffer, format='PNG')
-    thumbnailBuffer = ContentFile(buffer.getvalue())
-    instance.thumbnail.save(instance.image.name,
-                        InMemoryUploadedFile(
-                            thumbnailBuffer,
-                            None,
-                            instance.image.name,
-                            'image/jpeg',
-                            thumbnailBuffer.tell,
-                            None
-                        ))
-
 
 class SelfieImage(UserUploadedImage):
     """docstring for SelfieImage"""
@@ -231,8 +204,7 @@ class PreviewImage(models.Model):
                     None
                 ))
 
-class Collage(models.Model):
-    image = models.ImageField(upload_to="final", null=True)
+class Collage(UserUploadedImage):
     selfie_user = models.CharField(default="@mun_fases", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)
     background_description = models.CharField(default=":)", max_length=60)
@@ -247,23 +219,22 @@ class Collage(models.Model):
         previewImageFile = Image.open(previewImg.image)
         previewImageFile.save(fp=buffer, format='PNG')
         contentFile = ContentFile(buffer.getvalue())
-        collageFileName = "{}_{}_{}.jpg".format(
+        collageFileName = "{}_{}_{}.png".format(
                previewImg.moon.percent_illuminated,
                previewImg.selfie.username,
-               datetime.datetime.now().strftime("%d-%b-%Y-%H:%M:%S")
+               datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
            )
         self.image.save(collageFileName, InMemoryUploadedFile(
            contentFile,
            None,
            collageFileName,
-           'image/jpeg',
+           'image/png',
            contentFile.tell,
            None
         ))
 
     @classmethod
     def create(cls, previewImg):
-        image = previewImg.image
         selfie_username = "@{}".format(previewImg.selfie.username)
         moon_state_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,

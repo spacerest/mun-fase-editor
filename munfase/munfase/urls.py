@@ -21,11 +21,13 @@ import editor.views
 
 urlpatterns = [
     path('live/', admin.site.urls),
+    path('', editor.views.home),
     path('signup/', editor.views.signup),
     path('login/', editor.views.login_user),
     path('logout/', editor.views.logout_user),
     path('edit/', editor.views.edit_image),
     path('upload/', editor.views.upload_image),
+    path('saved/', editor.views.saved_images),
     path('instagram-login', editor.views.log_into_instagram),
 ]
 if settings.DEBUG:
