@@ -29,6 +29,6 @@
             {% endfor %}
             </form>
         {% else %}
-            <p>please go to <a href="edit">edit</a> to create a new image. Currently none here!</p>
+        <p>please go to <a href="{% url 'edit_image' %}">this page</a> to create a new image. Currently none here!</p>
         {% endif %}
 {% endblock %}

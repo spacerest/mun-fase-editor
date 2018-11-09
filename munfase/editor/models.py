@@ -38,21 +38,6 @@ class UserUploadedImage(models.Model):
     image = models.ImageField(upload_to=get_upload_path, null=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True)
-    def save(self, *args, **kwargs):
-        buffer = BytesIO()
-        image = Image.open(self.image)
-        image = ImageOps.fit(image, (100, 100), Image.ANTIALIAS)
-        image.save(fp=buffer, format='PNG')
-        thumbnailBuffer = ContentFile(buffer.getvalue())
-        self.thumbnail.save(self.image.name,
-                            InMemoryUploadedFile(
-                                thumbnailBuffer,
-                                None,
-                                self.image.name,
-                                'image/jpeg',
-                                thumbnailBuffer.tell,
-                                None
-                            ), save=False)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
         super(UserUploadedImage, self).save(*args, **kwargs)
         if not self.id:

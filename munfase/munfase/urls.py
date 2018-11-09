@@ -21,13 +21,13 @@ import editor.views
 
 urlpatterns = [
     path('live/', admin.site.urls),
-    path('', editor.views.home),
-    path('signup/', editor.views.signup),
-    path('login/', editor.views.login_user),
-    path('logout/', editor.views.logout_user),
-    path('edit/', editor.views.edit_image),
+    path('', editor.views.home, name="home"),
+    path('signup/', editor.views.signup, name="signup"),
+    path('login/', editor.views.login_user, name="login"),
+    path('logout/', editor.views.logout_user, name="logout"),
+    path('edit/', editor.views.edit_image, name="edit_image"),
     path('image-library/', editor.views.manage_images, name="image_library"),
-    path('saved/', editor.views.saved_images),
+    path('saved/', editor.views.saved_images, name="saved_images"),
     path('delete/<int:pk>', editor.views.delete_image, name="delete_image"),
     path('instagram-login', editor.views.log_into_instagram),
 ]
