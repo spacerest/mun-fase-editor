@@ -97,21 +97,6 @@ def edit_image(request):
                        'texture_images': texture_images }
                       )
 
-def saved_images(request):
-    collages = Collage.objects.all()
-    if request.method == "POST" and "update-caption" in request.POST:
-        selectedImage = get
-    if request.method == "GET" and "image-selection" in request.GET:
-        selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).first()
-    else:
-        selectedImage = Collage.objects.first()
-    captionForm = CaptionForm(instance=selectedImage)
-    return render(request, 'saved_images.html',
-                  { 'collages': collages,
-                    'selected_image': selectedImage,
-                    'caption_form': captionForm }
-                  )
-
 @login_required(login_url='/login')
 def manage_images(request):
     moonUploadForm = MoonUploadForm()
@@ -188,7 +173,27 @@ def post_to_instagram(request, pk):
 
 def update_caption(request, pk):
     collage = get_object_or_404(Collage, pk=pk)
+    collages = Collage.objects.all()
     form = CaptionForm(request.POST or None, instance = collage)
     if form.is_valid():
         form.save()
-    return redirect('saved_images')
+    return render(request, 'saved_images.html',
+                  { 'collages': collages,
+                    'selected_image': collage,
+                    'caption_form': form }
+                  )
+
+def saved_images(request):
+    collages = Collage.objects.all()
+    if request.method == "GET" and "image-selection" in request.GET:
+        selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).last()
+    else:
+        selectedImage = collages.last()
+    captionForm = CaptionForm(instance=selectedImage)
+    return render(request, 'saved_images.html',
+                  { 'collages': collages,
+                    'selected_image': selectedImage,
+                    'caption_form': captionForm }
+                  )
+
+

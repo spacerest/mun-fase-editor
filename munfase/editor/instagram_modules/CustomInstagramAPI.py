@@ -36,7 +36,7 @@ class CustomInstagramAPI():
 
     def get_username(self, media_id):
         if not media_id:
-            raise Exception("No media id for this image")
+            return None
         self.ig.login()
         self.ig.mediaInfo(media_id)
         return self.ig.LastJson['items'][0]['user']['username']
