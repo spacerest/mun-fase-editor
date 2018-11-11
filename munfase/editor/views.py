@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm, CaptionForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, InstagramSelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm, CaptionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,7 @@ from PIL import Image, ImageOps, ImageEnhance
 import os
 from munfase.settings import BASE_DIR
 from munfase import settings
-from editor.instagram_modules import login as ig
+from editor.instagram_modules.CustomInstagramAPI import CustomInstagramAPI as ig
 from django.shortcuts import get_object_or_404
 import datetime
 import pdb
@@ -64,32 +64,31 @@ def logout_user(request):
 
 @login_required(login_url='/login')
 def edit_image(request):
-    try:
-        moon_images = MoonTemplate.objects.order_by('percent_illuminated')
-        selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
-        texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
-        previewImage = PreviewImage.objects.all().first() or PreviewImage()
-        previewForm = PreviewForm(instance=previewImage)
-        extraInfo = request.POST
-        if request.method == 'POST' and "selfie-selection" in request.POST:
-            previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
-        elif request.method == 'POST' and "moon-selection" in request.POST:
-            previewImage.moon = MoonTemplate.objects.filter(pk=request.POST.get('moon-selection')).first()
-        elif request.method == 'POST' and "foreground-selection" in request.POST:
-            previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
-        elif request.method == 'POST' and "background-selection" in request.POST:
-            previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
-        elif request.method == 'POST' and 'save-image' in request.POST:
-            previewForm = PreviewForm(request.POST, instance=previewImage)
-            collage = Collage.create(previewImage)
-            collage.make_image(previewImage)
-            return redirect('/saved/')
-        elif request.method == 'POST' and 'color-values' in request.POST:
-            previewForm = PreviewForm(request.POST, instance=previewImage)
-        if previewForm.is_valid():
-            previewImage = previewForm.save()
-        previewImage.process_image_files(name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
-        return render(request, 'edit_image.html',
+    moon_images = MoonTemplate.objects.order_by('percent_illuminated')
+    selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
+    texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+    previewImage = PreviewImage.objects.all().first() or PreviewImage()
+    previewForm = PreviewForm(instance=previewImage)
+    extraInfo = request.POST
+    if request.method == 'POST' and "selfie-selection" in request.POST:
+        previewImage.selfie = SelfieImage.objects.filter(pk=request.POST.get('selfie-selection')).first()
+    elif request.method == 'POST' and "moon-selection" in request.POST:
+        previewImage.moon = MoonTemplate.objects.filter(pk=request.POST.get('moon-selection')).first()
+    elif request.method == 'POST' and "foreground-selection" in request.POST:
+        previewImage.foreground = TextureImage.objects.filter(pk=request.POST.get('foreground-selection')).first()
+    elif request.method == 'POST' and "background-selection" in request.POST:
+        previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
+    elif request.method == 'POST' and 'save-image' in request.POST:
+        previewForm = PreviewForm(request.POST, instance=previewImage)
+        collage = Collage.create(previewImage)
+        collage.make_image(previewImage)
+        return redirect('/saved/')
+    elif request.method == 'POST' and 'color-values' in request.POST:
+        previewForm = PreviewForm(request.POST, instance=previewImage)
+    if previewForm.is_valid():
+        previewImage = previewForm.save()
+    previewImage.process_image_files(name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
+    return render(request, 'edit_image.html',
                       {'preview_form': previewForm,
                        'preview_image': previewImage,
                        'extra_info': extraInfo,
@@ -97,9 +96,6 @@ def edit_image(request):
                        'selfie_images': selfie_images,
                        'texture_images': texture_images }
                       )
-    except Exception as e:
-        return render(request, 'error.html',
-                      { 'error': "{}, {}".format(e, e.filename) })
 
 def saved_images(request):
     collages = Collage.objects.all()
@@ -121,6 +117,7 @@ def manage_images(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
     textureUploadForm = TextureUploadForm()
+    instagramSelfieUploadForm = InstagramSelfieUploadForm()
     moon_images = MoonTemplate.objects.order_by('percent_illuminated')
     selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
     texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
@@ -134,6 +131,16 @@ def manage_images(request):
         if selfieUploadForm.is_valid():
             selfieImageObj = selfieUploadForm.save()
             selfieUploadForm = SelfieUploadForm()
+    elif request.method == 'POST' and 'instagram-selfie-upload' in request.POST:
+        i = ig(test=True)
+        instagramSelfieUploadForm = InstagramSelfieUploadForm(request.POST)
+        if instagramSelfieUploadForm.is_valid():
+            selfieImageObj = instagramSelfieUploadForm.save()
+            image_info = i.get_image_info(selfieImageObj.instagram_post_url)
+            selfieImageObj.media_id = image_info["media_id"]
+            selfieImageObj.user_id = image_info["user_id"]
+            selfieImageObj.url = image_info["url"]
+            selfieImageObj.save()
     elif request.method == 'POST' and "texture-upload" in request.POST:
         textureUploadForm = TextureUploadForm(request.POST, request.FILES)
         if textureUploadForm.is_valid():
@@ -145,6 +152,7 @@ def manage_images(request):
                    'texture_images': texture_images,
                    'moon_upload_form': moonUploadForm,
                    'selfie_upload_form': selfieUploadForm,
+                   'instagram_selfie_upload_form': instagramSelfieUploadForm,
                    'texture_upload_form': textureUploadForm }
                  )
 
@@ -165,11 +173,17 @@ def delete_image(request, pk, template_name="upload_image.html"):
         return render(request, template_name, {'object': image})
 
 def post_to_instagram(request, pk):
+    i = ig(test=True)
     post = get_object_or_404(Collage, pk=pk)
-    caption = "{}\n*\n{}\n*\n{}\n*\n{}".format(post.selfie_user, post.background_description, post.foreground_description, post.percent_illuminated)
-    instagram_user = ig.post_image(post.image.path, caption)
+
+    #get current username based on user_id
+    username = i.get_username(post.selfie_media_id)
+
+    #format the caption based on the post
+    caption = "{}\n*\n@{}\n*\n{}\n*\n{}".format(post.moonstate_description, username, post.background_description, post.foreground_description)
+    i.post_image(image_path=post.image.path, caption=caption, usertags=[{'user_id': post.selfie_user_id, 'position': [0.55, 0.66]}])
     data = {}
-    data['instagram_user'] = instagram_user
+    data['instagram_user'] = username
     return render(request, 'post_confirmation.html', {'data': data})
 
 def update_caption(request, pk):

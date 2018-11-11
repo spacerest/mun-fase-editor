@@ -15,7 +15,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
 from io import StringIO
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
 from PIL import Image, ImageOps, ImageEnhance
 
 import os
@@ -26,6 +26,11 @@ import pdb
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+#saving img from url
+import requests
+from io import BytesIO
+from urllib.request import urlopen
+from tempfile import NamedTemporaryFile
 
 # Create your models here.
 #
@@ -38,38 +43,44 @@ class UserUploadedImage(models.Model):
     image = models.ImageField(upload_to=get_upload_path, null=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True)
+    url = models.URLField(max_length=2000, blank=True, null=True)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
         super(UserUploadedImage, self).save(*args, **kwargs)
         if not self.id:
             return
+        if self.url and not self.image:
+            img_temp = NamedTemporaryFile(delete = True)
+            img_temp.write(urlopen(self.url).read())
+            img_temp.flush()
+            self.image.save("test_thing.jpg", File(img_temp), save=False)
+        if self.image:
+            image_filename = str(self.image.path)
+            image = Image.open(image_filename)
+            #resize the fullsize image
+            image_width = self.image.width
+            image_height = self.image.height
+            new_width = image_size[0]
+            new_height = image_size[1]
+            if (image_width < image_height):
+                new_height = image_size[0]
+                new_width = int(image_size[1] * image_height / image_width)
+            elif (image_height < image_width):
+                new_width = image_size[1]
+                new_height = int(image_size[0] * image_height / image_width)
+            image = image.resize((new_width, new_height), Image.ANTIALIAS)
+            image.save(image_filename)
 
-        #resize the fullsize image
-        image_width = self.image.width
-        image_height = self.image.height
-        new_width = image_size[0]
-        new_height = image_size[1]
-        image_filename = str(self.image.path)
-        image = Image.open(image_filename)
-        if (image_width < image_height):
-            new_height = image_size[0]
-            new_width = int(image_size[1] * image_height / image_width)
-        elif (image_height < image_width):
-            new_width = image_size[1]
-            new_height = int(image_size[0] * image_height / image_width)
-        image = image.resize((new_width, new_height), Image.ANTIALIAS)
-        print(image_filename)
-        image.save(image_filename)
+            #make a separate thumbnail
+            buffer = BytesIO()
+            image = Image.open(self.image.path)
+            image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
+            image.save(fp=buffer, format='PNG')
+            image.seek(0)
+            self.thumbnail.save(self.image.name,
+                           ContentFile(buffer.getvalue()), save=False)
+            image.close()
+            super(UserUploadedImage, self).save(*args, **kwargs)
 
-        #make a separate thumbnail
-        buffer = BytesIO()
-        image = Image.open(self.image.path)
-        image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
-        image.save(fp=buffer, format='PNG')
-        image.seek(0)
-        self.thumbnail.save(self.image.name,
-                       ContentFile(buffer.getvalue()), save=False)
-        image.close()
-        super(UserUploadedImage, self).save(*args, **kwargs)
     def delete(self, *args, **kwargs):
         if self.image:
             os.remove(os.path.join(settings.MEDIA_ROOT, self.image.name))
@@ -102,10 +113,14 @@ class MoonTemplate(UserUploadedImage):
 
 class SelfieImage(UserUploadedImage):
     """docstring for SelfieImage"""
-    username = models.CharField(default="", max_length=50)
+    media_id = models.CharField(default="", max_length=1000, blank = True, null = True)
+    user_id = models.CharField(default="", max_length=1000, blank=True, null=True)
+    username = models.CharField(default="", max_length=50, blank=True, null=True)
     used = models.BooleanField(default=False)
+    instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
     def __str__(self):
         return self.username
+
 
 class TextureImage(UserUploadedImage):
     """docstring for TextureImage"""
@@ -190,12 +205,14 @@ class PreviewImage(models.Model):
                 ))
 
 class Collage(UserUploadedImage):
-    selfie_user = models.CharField(default="@mun_fases", max_length=60)
+    selfie_media_id = models.CharField(default="", max_length=60)
+    selfie_user_id = models.CharField(default="", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)
     background_description = models.CharField(default=":)", max_length=60)
     foreground_user = models.CharField(max_length=60, null=True, blank=True)
     foreground_description = models.CharField(default=":)", max_length=60)
     percent_illuminated = models.IntegerField(default="0")
+    moonstate_description = models.CharField(max_length=200,default="", null=True, blank=True)
 
     def __str__(self):
         return str(self.image)
@@ -221,8 +238,9 @@ class Collage(UserUploadedImage):
 
     @classmethod
     def create(cls, previewImg):
-        selfie_username = "@{}".format(previewImg.selfie.username)
-        moon_state_description = "{}, {}% illuminated".format(
+        selfie_user_id = previewImg.selfie.user_id
+        selfie_media_id = previewImg.selfie.media_id
+        moonstate_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,
                 previewImg.moon.percent_illuminated,
             )
@@ -236,15 +254,14 @@ class Collage(UserUploadedImage):
             background_description = "nothing"
         return cls(
             image = None,
-            selfie_user = previewImg.selfie.username,
+            selfie_user_id = previewImg.selfie.user_id,
+            selfie_media_id = previewImg.selfie.media_id,
             background_user = previewImg.background.username,
             foreground_user = previewImg.foreground.username,
             background_description = previewImg.background.description,
             foreground_description = previewImg.foreground.description,
             percent_illuminated = previewImg.moon.percent_illuminated
         )
-
-
 
 #image processing
 #helpful link https://simpleisbetterthancomplex.com/tutorial/2017/03/02/how-to-crop-images-in-a-django-application.html

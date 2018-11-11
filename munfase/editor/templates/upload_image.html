@@ -29,6 +29,16 @@
 
 
         <h1>Upload a new mirror selfie:</h1>
+
+        <h2> Using Instagram URL </h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ instagram_selfie_upload_form }}
+            <input type="submit" value="Upload" name="instagram-selfie-upload">
+            <br>
+        </form>
+
+        <h2> From your computer </h2>
         <form method="post" enctype="multipart/form-data" >
             {% csrf_token %}
             <div class="media">

@@ -18,6 +18,11 @@ class MoonUploadForm(ModelForm):
         model = MoonTemplate
         fields = ('image', 'percent_illuminated', 'moon_state')
 
+class InstagramSelfieUploadForm(ModelForm):
+    class Meta:
+        model = SelfieImage
+        fields = ('instagram_post_url', )
+
 class SelfieUploadForm(ModelForm):
     class Meta:
         model = SelfieImage
@@ -41,4 +46,4 @@ class SavedImageForm(ModelForm):
 class CaptionForm(ModelForm):
     class Meta:
         model = Collage
-        fields = ('selfie_user', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'percent_illuminated')
+        fields = ('selfie_user_id', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'percent_illuminated')
