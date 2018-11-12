@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 
-    <h1>HI {{request.user}}!</h1>
+    <div class="container">
+        <img class="main-title" src="{% static 'editor/mun_fases.svg' %}" />
+        <p>Hey, welcome. This is a site I use to edit images for an art project I post on instagram.</p>
+        <a href="https://instagram.com/mun_fases" target="_blank"><img class="logo-image" src="{% static 'editor/instagram.svg' %}" /></a>
+    </div>
 
-{% endblock content %}
+{% endblock %}

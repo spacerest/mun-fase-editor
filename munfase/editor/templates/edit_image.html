@@ -2,44 +2,26 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <div class="open-cv-container" style=
-    "background-image: url({{ MEDIA_URL  }}{{ preview_image.image }});
-     background-size: cover;">
-    </div>
-    <form method='POST'>
-        {% csrf_token %}
-        <input type="submit" value="update preview image" name="color-values"/>
-        {{ preview_form.as_p }}
-    </form>
-    <form method='POST'>
-        {% csrf_token %}
-        <input type="submit" value="save current image" name="save-image"/>
-        {{ saved_image_form.as_p }}
-    </form>
-    <form class="selected-images">
-        <input class="selected-image-preview" style=
-                      "background-image: url({{ MEDIA_URL }}{{ preview_image.moon.thumbnail }});"/>
-        <input class="selected-image-preview" style=
-                      "background-image: url({{ MEDIA_URL }}{{ preview_image.selfie.thumbnail }});"/>
-        <input class="selected-image-preview" style=
-                      "background-image: url({{ MEDIA_URL }}{{ preview_image.foreground.thumbnail }});"/>
-        <input class="selected-image-preview" style=
-                      "background-image: url({{ MEDIA_URL }}{{ preview_image.background.thumbnail }});" />
-    </form>
-        <h1>Choose the moon phase template:</h1>
-        {% if moon_images %}
-            <form method="post" class="img-group-container">
+<h1>e d i t</h1>
+<div class="container flex-parent">
+    <div class="sub-container flex-parent">
+        <form method='POST' class="flex-child full-width">
             {% csrf_token %}
-            {% for moon_image in moon_images %}
-            <label class="img-select" for='moon-{{ moon_image.id }}' style=
-                      "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
-                <input type="submit" value="{{ moon_image.id }}" name="moon-selection"/>
-            </label>
-            <span>{{ moon_image.percent_illuminated }}% {{ moon_image.moon_state }}</span>
-            {% endfor %}
+            <input class="button" type="submit" value="save current image" name="save-image"/>
+            {{ saved_image_form.as_p }}
+        </form>
+        <div class="open-cv-container flex-child" style=
+        "background-image: url({{ MEDIA_URL  }}{{ preview_image.image }});
+         background-size: cover;">
+        </div>
+            <form method='POST' class="flex-child">
+                {% csrf_token %}
+                {{ preview_form.as_p }}
+                <input class="button" type="submit" value="update preview image" name="color-values"/>
             </form>
-        {% endif %}
+        </div>
+
+        <div class="sub-container flex-child">
        <h1>Choose the mirror selfie:</h1>
         {% if selfie_images %}
         <form method="post" class="img-group-container">
@@ -51,7 +33,11 @@
             </label>
             {% endfor %}
             </form>
+        {% else %}
+        <p>please go <a href="{% url 'image_library' %}">upload some images.</a></p>
         {% endif %}
+    </div>
+    <div class="sub-container flex-child">
        <h1>Texture images</h1>
        <h2>Choose the moon foreground:</h2>
         {% if texture_images %}
@@ -64,7 +50,10 @@
             </label>
             {% endfor %}
             </form>
+        {% else %}
+        <p>please go <a href="{% url 'image_library' %}">upload some images.</a></p>
         {% endif %}
+
         <h2>Choose the background:</h2>
         {% if texture_images %}
             <form method="post" class="img-group-container" name="texture">
@@ -76,5 +65,28 @@
             </label>
             {% endfor %}
             </form>
+        {% else %}
+        <p>please go <a href="{% url 'image_library' %}">upload some images.</a></p>
         {% endif %}
+        </div>
+        <div class="sub-container flex-child">
+        <h1>Choose the moon phase template:</h1>
+        {% if moon_images %}
+            <form method="post" class="img-group-container">
+            {% csrf_token %}
+            {% for moon_image in moon_images %}
+            <label class="img-select" for='moon-{{ moon_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
+                <input type="submit" value="{{ moon_image.id }}" name="moon-selection"/>
+            </label>
+            <span>{{ moon_image.percent_illuminated }}% {{ moon_image.moon_state }}</span>
+            {% endfor %}
+            </form>
+        {% else %}
+            <p>please go <a href="{% url 'image_library' %}">upload some images.</a></p>
+        {% endif %}
+    </div>
+
+
+    </div>
 {% endblock %}

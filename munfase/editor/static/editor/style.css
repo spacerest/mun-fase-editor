@@ -1,37 +1,67 @@
+html {
+  min-height: 100%;
+  position: relative;
+  box-sizing: border-box; }
+
 body {
   max-width: 80vw;
-  margin: auto; }
+  margin: auto;
+  background-color: #ffebce;
+  color: #222;
+  font: Arial, Helvetica, sans-serif;
+  font-weight: 400; }
+  @media screen and (max-width: 740px) {
+    body {
+      max-width: 98vw; } }
 
 nav {
+  line-height: 35px;
   display: flex;
   justify-content: space-between;
   padding: 5px;
-  border-bottom: 1px solid gray; }
+  border-bottom: 1px solid #076a70; }
 
 nav .welcome {
   margin: 0; }
 
+h1 {
+  font-size: 50px; }
+  @media screen and (max-width: 740px) {
+    h1 {
+      font-size: 30px; } }
+
 h1,
 h2 {
-  text-align: center; }
+  text-align: center;
+  font-weight: 400; }
 
 a {
-  color: gray;
+  color: #076a70;
   text-decoration: none; }
+  a:hover {
+    color: #222; }
 
 .button, input, input[type='submit'] {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid gray;
   font-size: 1em;
-  cursor: pointer;
-  color: gray;
-  padding: 4px;
-  width: 100%; }
+  width: 100%;
+  box-shadow: none; }
 
-input:hover, input[type='submit']:hover {
-  color: black;
-  border: 1px solid black;
+input[type='submit'] {
+  cursor: pointer;
+  background-color: transparent; }
+
+.button, input[type='submit'].button {
+  cursor: pointer;
+  float: center;
+  line-height: 35px;
+  margin: 5px 10px;
+  text-align: center;
+  background-color: #b8ffaa;
+  color: #222;
+  border: 1px solid #076a70;
   transition: ease-in-out .2s; }
+  .button:hover, input[type='submit'].button:hover {
+    color: #076a70; }
 
 .img-group-container {
   width: 100%;
@@ -40,32 +70,113 @@ input:hover, input[type='submit']:hover {
     width: 80px;
     height: 80px; }
 
+textarea {
+  width: 100%;
+  height: 35px; }
+
 label.img-select, .selected-image-preview {
   background-size: cover;
-  height: 130px;
-  width: 130px;
   display: inline-block;
   padding: 0 0 0 0px;
   box-sizing: border-box;
-  background-color: black; }
+  background-color: #b8ffaa; }
 
-label > input[type="submit"] {
+label > input[type="submit"], label.img-select, .selected-image-preview {
   height: 130px;
   width: 130px; }
+  @media screen and (max-width: 740px) {
+    label > input[type="submit"], label.img-select, .selected-image-preview {
+      height: 75px;
+      width: 75px; } }
 
 .open-cv-container {
-  height: 70vw;
-  width: 70vw;
+  height: 30vw;
+  width: 30vw;
   max-height: 500px;
   max-width: 500px;
   display: inline-block;
-  border: 2px solid black;
   margin: 15px; }
 
 .container {
-  display: inline-block; }
+  display: inline-block;
+  width: 100%;
+  text-align: center; }
+
+.sub-container {
+  margin: 25px;
+  padding: 25px;
+  padding-bottom: 50px;
+  margin-bottom: 50px;
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.6); }
 
 form {
+  text-align: left;
   display: inline-block; }
+
+.flex-parent-nowrap {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: nowrap; }
+
+.flex-parent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly; }
+
+.flex-child {
+  align-self: flex-start;
+  display: inline-block; }
+
+.main-title {
+  margin-top: 20vh;
+  margin-bottom: 10vh;
+  width: 80vw;
+  height: auto; }
+
+.mini-title {
+  display: inline-block;
+  height: 2em;
+  width: 4em; }
+
+footer {
+  text-align: right;
+  line-height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 10px;
+  width: 90%; }
+
+.footer-title {
+  display: inline-block;
+  height: 40px;
+  float: right; }
+
+.copyright {
+  float: left; }
+
+.full-width {
+  margin: 3% 10%;
+  width: 80%; }
+
+.logo-image {
+  height: 100px;
+  width: auto; }
+
+.current-caption {
+  background-color: #222;
+  color: #ffebce;
+  display: inline-block;
+  align-self: center;
+  padding: 10px 30px;
+  margin: 10px;
+  border-radius: 10px; }
+  @media screen and (max-width: 740px) {
+    .current-caption {
+      padding: 5px 8px; } }
+
+.float-right {
+  float: right; }
 
 /*# sourceMappingURL=style.css.map */

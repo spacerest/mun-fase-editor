@@ -2,19 +2,19 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-
-        <h1>Upload a new texture image:</h1>
+<h1>u p l o a d</h1>
+<div class="container flex-parent">
+    <div class="sub-container flex-child">
+        <h1>textures</h1>
             <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="media">
                 {{ texture_upload_form.as_p }}
-                <input type="submit" value="Upload" name="texture-upload" >
+                <input class="button" type="submit" value="Upload" name="texture-upload" >
               <br>
           </form>
 
         {% if texture_images %}
-        <h2>Delete existing texture images:</h2>
+        <h2>Delete existing texture images?</h2>
             {% for texture_image in texture_images %}
             <form method="post" action="{% url 'delete_image' pk=texture_image.id %}">
                 {% csrf_token %}
@@ -25,30 +25,31 @@
             </form>
             {% endfor %}
         {% endif %}
+    </div>
 
+    <div class="sub-container flex-child">
+        <h1>mirror selfies</h1>
 
-
-        <h1>Upload a new mirror selfie:</h1>
-
-        <h2> Using Instagram URL </h2>
+        <h2>...Instagram post URL </h2>
         <form method="post">
             {% csrf_token %}
             {{ instagram_selfie_upload_form }}
-            <input type="submit" value="Upload" name="instagram-selfie-upload">
+            <input class="button" type="submit" value="Upload" name="instagram-selfie-upload">
             <br>
         </form>
-
-        <h2> From your computer </h2>
+        <br>
+        <br>
+        <br>
+        <h2>...your device</h2>
         <form method="post" enctype="multipart/form-data" >
             {% csrf_token %}
-            <div class="media">
                 {{ selfie_upload_form.as_p }}
-                <input type="submit" value="Upload" name="selfie-upload">
+                <input class="button" type="submit" value="Upload" name="selfie-upload">
               <br>
           </form>
 
         {% if selfie_images %}
-        <h2>Delete existing selfies:</h2>
+        <h2>Delete existing selfies?</h2>
             {% for selfie_image in selfie_images %}
             <form method="post" action="{% url 'delete_image' pk=selfie_image.id %}">
                 {% csrf_token %}
@@ -59,18 +60,18 @@
             </form>
             {% endfor %}
         {% endif %}
+    </div>
 
-
-        <h1>Upload a new moon phase template:</h1>
+    <div class="sub-container flex-child">
+        <h1>moon phase templates</h1>
         <form method="post" enctype="multipart/form-data" >
             {% csrf_token %}
-            <div class="media">
                 {{ moon_upload_form.as_p }}
-                <input type="submit" value="Upload" name="moon-upload">
+                <input class="button" type="submit" value="Upload" name="moon-upload">
               <br>
           </form>
         {% if moon_images %}
-        <h2>Delete existing moon templates:</h2>
+        <h2>Delete existing moon templates?</h2>
             {% for moon_image in moon_images %}
             <form method="post" action="{% url 'delete_image' pk=moon_image.pk %}">
                 {% csrf_token %}
@@ -81,8 +82,6 @@
             </form>
             {% endfor %}
         {% endif %}
-
-
-
-
-        {% endblock %}
+    </div>
+</div>
+{% endblock %}
