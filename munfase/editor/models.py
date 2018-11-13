@@ -42,7 +42,7 @@ class UserUploadedImage(models.Model):
     """images that are uploaded by a user, resized, and combined to make final image"""
     image = models.ImageField(upload_to=get_upload_path, null=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
-    date_uploaded = models.DateField(auto_now_add=True)
+    date_uploaded = models.DateField(auto_now_add=True, blank=True, null=True)
     url = models.URLField(max_length=2000, blank=True, null=True)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
         super(UserUploadedImage, self).save(*args, **kwargs)
@@ -204,7 +204,8 @@ class PreviewImage(models.Model):
                     None
                 ))
 
-class Collage(UserUploadedImage):
+
+class TempSavedImage(UserUploadedImage):
     selfie_media_id = models.CharField(default="", max_length=60)
     selfie_user_id = models.CharField(default="", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)

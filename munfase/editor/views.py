@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, InstagramSelfieUploadForm, TextureUploadForm, PreviewForm, SavedImageForm, CaptionForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, InstagramSelfieUploadForm, TextureUploadForm, PreviewForm, TempSavedImageForm, CaptionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, Collage, UserUploadedImage
+from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, TempSavedImage, UserUploadedImage
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
@@ -80,7 +80,7 @@ def edit_image(request):
         previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
     elif request.method == 'POST' and 'save-image' in request.POST:
         previewForm = PreviewForm(request.POST, instance=previewImage)
-        collage = Collage.create(previewImage)
+        collage = TempSavedImage.create(previewImage)
         collage.make_image(previewImage)
         return redirect('/saved/')
     elif request.method == 'POST' and 'color-values' in request.POST:
@@ -159,21 +159,26 @@ def delete_image(request, pk, template_name="upload_image.html"):
 
 def post_to_instagram(request, pk):
     i = ig(test=True)
-    post = get_object_or_404(Collage, pk=pk)
+    post = get_object_or_404(TempSavedImage, pk=pk)
 
     #get current username based on user_id
-    username = i.get_username(post.selfie_media_id)
+    if(post.selfie_media_id != 'media_id'):
+        username = i.get_username(post.selfie_media_id)
+        usertags = [{'user_id': post.selfie_user_id, 'position': [0.55, 0.66]}]
+    else:
+        username = "mun_fases"
+        usertags = []
 
     #format the caption based on the post
-    caption = "{}\n*\n@{}\n*\n{}\n*\n{}".format(post.moonstate_description, username, post.background_description, post.foreground_description)
-    i.post_image(image_path=post.image.path, caption=caption, usertags=[{'user_id': post.selfie_user_id, 'position': [0.55, 0.66]}])
+    caption = "{}\n*\n📷: @{}\n*\n{}\n*\n{}".format(post.moonstate_description, username, post.background_description, post.foreground_description)
+    i.post_image(image_path=post.image.path, caption=caption, usertags=usertags)
     data = {}
     data['instagram_user'] = username
     return render(request, 'post_confirmation.html', {'data': data})
 
 def update_caption(request, pk):
-    collage = get_object_or_404(Collage, pk=pk)
-    collages = Collage.objects.all()
+    collage = get_object_or_404(TempSavedImage, pk=pk)
+    collages = TempSavedImage.objects.all()
     form = CaptionForm(request.POST or None, instance = collage)
     if form.is_valid():
         form.save()
@@ -184,9 +189,9 @@ def update_caption(request, pk):
                   )
 
 def saved_images(request):
-    collages = Collage.objects.all()
+    collages = TempSavedImage.objects.all()
     if request.method == "GET" and "image-selection" in request.GET:
-        selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).last()
+        selectedImage = TempSavedImage.objects.filter(pk=request.GET.get('image-selection')).last()
     else:
         selectedImage = collages.last()
     captionForm = CaptionForm(instance=selectedImage)

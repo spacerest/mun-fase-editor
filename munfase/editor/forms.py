@@ -38,12 +38,12 @@ class PreviewForm(ModelForm):
         model = PreviewImage
         fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted', )
 
-class SavedImageForm(ModelForm):
+class TempSavedImageForm(ModelForm):
     class Meta:
-        model = Collage
+        model = TempSavedImage 
         fields = ('image',)
 
 class CaptionForm(ModelForm):
     class Meta:
-        model = Collage
+        model = TempSavedImage 
         fields = ('selfie_user_id', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'percent_illuminated')

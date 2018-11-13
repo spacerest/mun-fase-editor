@@ -14,7 +14,6 @@ class CustomInstagramAPI():
     #todo check if user is already logged in before logging in again
 
     def post_image(self, image_path, caption, usertags=[], test=False):
-        print(usertags)
         self.ig.login()
         photo_path = image_path
         self.ig.uploadPhoto(image_path, caption=caption, usertags=usertags)
