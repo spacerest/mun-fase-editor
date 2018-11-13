@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>mun fases</title>
     <link rel="stylesheet" type="text/css" href='{% static "editor/style.css" %}'>
+    <link rel="icon" href="{% static 'editor/favicon.png' %}" type="image/png" />
 </head>
 <body
     style="background-image: url({% static 'editor/moon.svg' %}); background-size: contain; background-repeat: no-repeat; background-attachment: fixed;"
@@ -12,9 +13,9 @@
     <nav>
         {% if request.user.is_authenticated %}
         <a class="mini-title" href="{% url 'home' %}" style="background-image: url({% static 'editor/m_f.svg' %}); background-size: contain; background-repeat: no-repeat;"></a>
-        <a href="{% url 'image_library' %}">manage images</a>
-        <a href="{% url 'edit_image' %}">make a new post</a>
-        <a href="{% url 'saved_images' %}">saved posts</a>
+        <a href="{% url 'image_library' %}">upload</a>
+        <a href="{% url 'edit_image' %}">edit</a>
+        <a href="{% url 'saved_images' %}">post</a>
         <a href="{% url 'logout' %}">logout</a>
         {% else %}
         <a class="mini-title" href="{% url 'home' %}" style="background-image: url({% static 'editor/m_f.svg' %}); background-size: contain; background-repeat: no-repeat;"></a>
