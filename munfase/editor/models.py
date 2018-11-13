@@ -40,19 +40,22 @@ def get_upload_path(cls, filename):
 
 class UserUploadedImage(models.Model):
     """images that are uploaded by a user, resized, and combined to make final image"""
-    image = models.ImageField(upload_to=get_upload_path, null=True)
+    image = models.ImageField(upload_to=get_upload_path, null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True, blank=True, null=True)
-    url = models.URLField(max_length=2000, blank=True, null=True)
+    source_url = models.URLField(max_length=2000, blank=True, null=True)
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
         super(UserUploadedImage, self).save(*args, **kwargs)
         if not self.id:
             return
-        if self.url and not self.image:
+        if self.source_url and not self.image:
+            image_filename = "{}.jpg".format(
+               datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+           )
             img_temp = NamedTemporaryFile(delete = True)
-            img_temp.write(urlopen(self.url).read())
+            img_temp.write(urlopen(self.source_url).read())
             img_temp.flush()
-            self.image.save("test_thing.jpg", File(img_temp), save=False)
+            self.image.save(image_filename, File(img_temp), save=False)
         if self.image:
             image_filename = str(self.image.path)
             image = Image.open(image_filename)
@@ -92,14 +95,14 @@ class UserUploadedImage(models.Model):
 class MoonTemplate(UserUploadedImage):
     """docstring for Moon"""
     STATE_CHOICES = (
-        ("waxing_crescent", "waxing_crescent"),
-        ("first_quarter", "first quarter"),
-        ("waxing_gibbous", "waxing gibbous"),
-        ("full_moon", "full moon"),
-        ("waning_gibbous", "waning gibbous"),
-        ("last_quarter", "last quarter"),
-        ("waning_crescent", "waning crescent"),
-        ("new_moon", "new moon")
+        ("waxing crescent", "waxing crescent"),
+        ("first quarter", "first quarter"),
+        ("waxing gibbous", "waxing gibbous"),
+        ("full moon", "full moon"),
+        ("waning gibbous", "waning gibbous"),
+        ("last quarter", "last quarter"),
+        ("waning crescent", "waning crescent"),
+        ("new moon", "new moon")
     )
     moon_state = models.CharField(
         max_length = 50,
@@ -107,26 +110,36 @@ class MoonTemplate(UserUploadedImage):
         default = "new_moon"
     )
     percent_illuminated = models.IntegerField(default = 50)
-
+    hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
         return str(self.percent_illuminated)
+
+class InstagramUser(models.Model):
+    user_id = models.CharField(default="", max_length=50)
+    username = models.CharField(default="", max_length=50, null=True, blank=True)
+    def __str__(self):
+        return str(self.user_id)
 
 class SelfieImage(UserUploadedImage):
     """docstring for SelfieImage"""
     media_id = models.CharField(default="", max_length=1000, blank = True, null = True)
-    user_id = models.CharField(default="", max_length=1000, blank=True, null=True)
     username = models.CharField(default="", max_length=50, blank=True, null=True)
     used = models.BooleanField(default=False)
+    instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete = models.CASCADE)
     instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
+    hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
         return self.username
-
 
 class TextureImage(UserUploadedImage):
     """docstring for TextureImage"""
     username = models.CharField(default="none", max_length=50)
     used = models.BooleanField(default=False)
     description = models.TextField(max_length = 400, null=True, blank=True)
+    instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
+    media_id = models.CharField(default="", max_length=1000, blank = True, null = True)
+    instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete=models.CASCADE)
+    hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
         return self.username
 
@@ -204,8 +217,7 @@ class PreviewImage(models.Model):
                     None
                 ))
 
-
-class TempSavedImage(UserUploadedImage):
+class Collage(UserUploadedImage):
     selfie_media_id = models.CharField(default="", max_length=60)
     selfie_user_id = models.CharField(default="", max_length=60)
     background_user = models.CharField(max_length=60, null=True, blank=True)
@@ -239,7 +251,7 @@ class TempSavedImage(UserUploadedImage):
 
     @classmethod
     def create(cls, previewImg):
-        selfie_user_id = previewImg.selfie.user_id
+        selfie_user_id = previewImg.selfie.instagram_user.user_id
         selfie_media_id = previewImg.selfie.media_id
         moonstate_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,
@@ -247,21 +259,25 @@ class TempSavedImage(UserUploadedImage):
             )
         if previewImg.foreground:
             foreground_description = previewImg.foreground.description
+            foreground_user = previewImg.background.username
         else:
             foreground_description = "nothing"
+            foreground_user = ""
         if previewImg.background:
             background_description = previewImg.background.description
+            background_user = previewImg.background.username
         else:
             background_description = "nothing"
+            background_user = ""
         return cls(
             image = None,
-            selfie_user_id = previewImg.selfie.user_id,
+            selfie_user_id = previewImg.selfie.instagram_user.user_id,
             selfie_media_id = previewImg.selfie.media_id,
-            background_user = previewImg.background.username,
-            foreground_user = previewImg.foreground.username,
-            background_description = previewImg.background.description,
-            foreground_description = previewImg.foreground.description,
-            percent_illuminated = previewImg.moon.percent_illuminated
+            background_user = background_user,
+            foreground_user = foreground_user,
+            background_description = background_description,
+            foreground_description = foreground_description,
+            moonstate_description = moonstate_description
         )
 
 #image processing

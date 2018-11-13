@@ -25,6 +25,7 @@ class CustomInstagramAPI():
         self.ig.mediaInfo(info['media_id'])
         media_info = self.ig.LastJson
         info['url'] = media_info['items'][0]['image_versions2']['candidates'][0]['url']
+        info['username'] = media_info['items'][0]['user']['username']
         info['user_id'] = media_info['items'][0]['user']['pk']
         return info
 

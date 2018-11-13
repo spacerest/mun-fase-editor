@@ -18,32 +18,27 @@ class MoonUploadForm(ModelForm):
         model = MoonTemplate
         fields = ('image', 'percent_illuminated', 'moon_state')
 
-class InstagramSelfieUploadForm(ModelForm):
-    class Meta:
-        model = SelfieImage
-        fields = ('instagram_post_url', )
-
 class SelfieUploadForm(ModelForm):
     class Meta:
         model = SelfieImage
-        fields = ('image', 'username', )
+        fields = ('instagram_post_url', 'source_url', 'hashtags', 'image', 'username')
 
 class TextureUploadForm(ModelForm):
     class Meta:
         model = TextureImage
-        fields = ('image', 'username', 'description',)
+        fields = ('image', 'source_url', 'instagram_post_url', 'username', 'description', 'hashtags')
 
 class PreviewForm(ModelForm):
     class Meta:
         model = PreviewImage
-        fields = ('selfie_contrast', 'foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted', )
+        fields = ('foreground_transparency', 'foreground_inverted', 'background_transparency','background_inverted', )
 
-class TempSavedImageForm(ModelForm):
+class CollageForm(ModelForm):
     class Meta:
-        model = TempSavedImage 
+        model = Collage
         fields = ('image',)
 
 class CaptionForm(ModelForm):
     class Meta:
-        model = TempSavedImage 
+        model = Collage
         fields = ('selfie_user_id', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'percent_illuminated')

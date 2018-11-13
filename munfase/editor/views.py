@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, InstagramSelfieUploadForm, TextureUploadForm, PreviewForm, TempSavedImageForm, CaptionForm
+from editor.forms import SignupForm, MoonUploadForm, SelfieUploadForm, TextureUploadForm, PreviewForm, CollageForm, CaptionForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, TempSavedImage, UserUploadedImage
+from editor.models import MoonTemplate, SelfieImage, TextureImage, PreviewImage, Collage, UserUploadedImage, InstagramUser
 from django.forms import modelformset_factory
 from PIL import Image, ImageOps, ImageEnhance
 import os
@@ -80,7 +80,7 @@ def edit_image(request):
         previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
     elif request.method == 'POST' and 'save-image' in request.POST:
         previewForm = PreviewForm(request.POST, instance=previewImage)
-        collage = TempSavedImage.create(previewImage)
+        collage = Collage.create(previewImage)
         collage.make_image(previewImage)
         return redirect('/saved/')
     elif request.method == 'POST' and 'color-values' in request.POST:
@@ -102,7 +102,6 @@ def manage_images(request):
     moonUploadForm = MoonUploadForm()
     selfieUploadForm = SelfieUploadForm()
     textureUploadForm = TextureUploadForm()
-    instagramSelfieUploadForm = InstagramSelfieUploadForm()
     moon_images = MoonTemplate.objects.order_by('percent_illuminated')
     selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
     texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
@@ -115,21 +114,35 @@ def manage_images(request):
         selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
         if selfieUploadForm.is_valid():
             selfieImageObj = selfieUploadForm.save()
+            if selfieImageObj.instagram_post_url:
+                i = ig(test=True)
+                selfieImageObj = selfieUploadForm.save()
+                image_info = i.get_image_info(selfieImageObj.instagram_post_url)
+                selfieImageObj.media_id = image_info["media_id"]
+                existing_instagram_user = InstagramUser.objects.filter(user_id=image_info["user_id"])
+                if len(existing_instagram_user):
+                    selfieImageObj.instagram_user = existing_instagram_user.first()
+                else:
+                    selfieImageObj.instagram_user = InstagramUser.objects.create(user_id=image_info["user_id"])
+                selfieImageObj.source_url = image_info["url"]
+                selfieImageObj.save()
             selfieUploadForm = SelfieUploadForm()
-    elif request.method == 'POST' and 'instagram-selfie-upload' in request.POST:
-        i = ig(test=True)
-        instagramSelfieUploadForm = InstagramSelfieUploadForm(request.POST)
-        if instagramSelfieUploadForm.is_valid():
-            selfieImageObj = instagramSelfieUploadForm.save()
-            image_info = i.get_image_info(selfieImageObj.instagram_post_url)
-            selfieImageObj.media_id = image_info["media_id"]
-            selfieImageObj.user_id = image_info["user_id"]
-            selfieImageObj.url = image_info["url"]
-            selfieImageObj.save()
     elif request.method == 'POST' and "texture-upload" in request.POST:
         textureUploadForm = TextureUploadForm(request.POST, request.FILES)
         if textureUploadForm.is_valid():
             textureImageObj = textureUploadForm.save()
+            if textureImageObj.instagram_post_url:
+                i = ig(test=True)
+                textureImageObj = textureUploadForm.save()
+                image_info = i.get_image_info(textureImageObj.instagram_post_url)
+                textureImageObj.media_id = image_info["media_id"]
+                existing_instagram_user = InstagramUser.objects.filter(user_id=image_info["user_id"])
+                if len(existing_instagram_user):
+                    textureImageObj.instagram_user = existing_instagram_user.first()
+                else:
+                    textureImageObj.instagram_user = InstagramUser.objects.create(user_id=image_info["user_id"])
+                textureImageObj.source_url = image_info["url"]
+                textureImageObj.save()
             textureUploadForm = TextureUploadForm()
     return render(request, 'upload_image.html',
                   {'moon_images': moon_images,
@@ -137,7 +150,6 @@ def manage_images(request):
                    'texture_images': texture_images,
                    'moon_upload_form': moonUploadForm,
                    'selfie_upload_form': selfieUploadForm,
-                   'instagram_selfie_upload_form': instagramSelfieUploadForm,
                    'texture_upload_form': textureUploadForm }
                  )
 
@@ -159,10 +171,10 @@ def delete_image(request, pk, template_name="upload_image.html"):
 
 def post_to_instagram(request, pk):
     i = ig(test=True)
-    post = get_object_or_404(TempSavedImage, pk=pk)
+    post = get_object_or_404(Collage, pk=pk)
 
     #get current username based on user_id
-    if(post.selfie_media_id != 'media_id'):
+    if(post.selfie_media_id and post.selfie_media_id != 'media_id'):
         username = i.get_username(post.selfie_media_id)
         usertags = [{'user_id': post.selfie_user_id, 'position': [0.55, 0.66]}]
     else:
@@ -177,8 +189,8 @@ def post_to_instagram(request, pk):
     return render(request, 'post_confirmation.html', {'data': data})
 
 def update_caption(request, pk):
-    collage = get_object_or_404(TempSavedImage, pk=pk)
-    collages = TempSavedImage.objects.all()
+    collage = get_object_or_404(Collage, pk=pk)
+    collages = Collage.objects.all()
     form = CaptionForm(request.POST or None, instance = collage)
     if form.is_valid():
         form.save()
@@ -189,9 +201,9 @@ def update_caption(request, pk):
                   )
 
 def saved_images(request):
-    collages = TempSavedImage.objects.all()
+    collages = Collage.objects.all()
     if request.method == "GET" and "image-selection" in request.GET:
-        selectedImage = TempSavedImage.objects.filter(pk=request.GET.get('image-selection')).last()
+        selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).last()
     else:
         selectedImage = collages.last()
     captionForm = CaptionForm(instance=selectedImage)
