@@ -22,7 +22,7 @@ import editor.views
 urlpatterns = [
     path('live/', admin.site.urls),
     path('', editor.views.home, name="home"),
-    path('signup/', editor.views.signup, name="signup"),
+    #path('signup/', editor.views.signup, name="signup"),
     path('login/', editor.views.login_user, name="login"),
     path('logout/', editor.views.logout_user, name="logout"),
     path('edit/', editor.views.edit_image, name="edit_image"),

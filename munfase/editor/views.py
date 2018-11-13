@@ -23,23 +23,23 @@ from io import BytesIO
 from io import StringIO
 from django.core.files.base import ContentFile
 
-def signup(request):
-    if request.user.is_authenticated:
-        return redirect('/')
-    if request.method == 'POST':
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('/')
-        else:
-            return render(request, 'signup.html', {'form': form})
-    else:
-        form = SignupForm()
-        return render(request, 'signup.html', {'form': form})
+#def signup(request):
+#    if request.user.is_authenticated:
+#        return redirect('/')
+#    if request.method == 'POST':
+#        form = SignupForm(request.POST)
+#        if form.is_valid():
+#            form.save()
+#            username = form.cleaned_data.get('username')
+#            password = form.cleaned_data.get('password1')
+#            user = authenticate(username=username, password=password)
+#            login(request, user)
+#            return redirect('/')
+#        else:
+#            return render(request, 'signup.html', {'form': form})
+#    else:
+#        form = SignupForm()
+#        return render(request, 'signup.html', {'form': form})
 
 def login_user(request):
     if request.user.is_authenticated:
@@ -112,38 +112,12 @@ def manage_images(request):
             moonUploadForm = MoonUploadForm()
     elif request.method == 'POST' and "selfie-upload" in request.POST:
         selfieUploadForm = SelfieUploadForm(request.POST, request.FILES)
-        if selfieUploadForm.is_valid():
-            selfieImageObj = selfieUploadForm.save()
-            if selfieImageObj.instagram_post_url:
-                i = ig(test=True)
-                selfieImageObj = selfieUploadForm.save()
-                image_info = i.get_image_info(selfieImageObj.instagram_post_url)
-                selfieImageObj.media_id = image_info["media_id"]
-                existing_instagram_user = InstagramUser.objects.filter(user_id=image_info["user_id"])
-                if len(existing_instagram_user):
-                    selfieImageObj.instagram_user = existing_instagram_user.first()
-                else:
-                    selfieImageObj.instagram_user = InstagramUser.objects.create(user_id=image_info["user_id"])
-                selfieImageObj.source_url = image_info["url"]
-                selfieImageObj.save()
-            selfieUploadForm = SelfieUploadForm()
+        process_image_upload(selfieUploadForm)
+        selfieUploadForm = SelfieUploadForm()
     elif request.method == 'POST' and "texture-upload" in request.POST:
         textureUploadForm = TextureUploadForm(request.POST, request.FILES)
-        if textureUploadForm.is_valid():
-            textureImageObj = textureUploadForm.save()
-            if textureImageObj.instagram_post_url:
-                i = ig(test=True)
-                textureImageObj = textureUploadForm.save()
-                image_info = i.get_image_info(textureImageObj.instagram_post_url)
-                textureImageObj.media_id = image_info["media_id"]
-                existing_instagram_user = InstagramUser.objects.filter(user_id=image_info["user_id"])
-                if len(existing_instagram_user):
-                    textureImageObj.instagram_user = existing_instagram_user.first()
-                else:
-                    textureImageObj.instagram_user = InstagramUser.objects.create(user_id=image_info["user_id"])
-                textureImageObj.source_url = image_info["url"]
-                textureImageObj.save()
-            textureUploadForm = TextureUploadForm()
+        process_image_upload(textureUploadForm)
+        textureUploadForm = TextureUploadForm()
     return render(request, 'upload_image.html',
                   {'moon_images': moon_images,
                    'selfie_images': selfie_images,
@@ -153,9 +127,25 @@ def manage_images(request):
                    'texture_upload_form': textureUploadForm }
                  )
 
-@login_required(login_url='/login')
 def home(request):
     return render(request, 'home.html')
+
+def process_image_upload(form):
+    if form.is_valid():
+        imageObj = form.save()
+        if imageObj.instagram_post_url:
+            i = ig(test=True)
+            imageObj = form.save()
+            image_info = i.get_image_info(imageObj.instagram_post_url)
+            imageObj.media_id = image_info["media_id"]
+            existing_instagram_user = InstagramUser.objects.filter(user_id=image_info['user_id'])
+            if len(existing_instagram_user):
+                imageObj.instagram_user = existing_instagram_user.first()
+            else:
+                imageObj.instagram_user = InstagramUser.objects.create(user_id=image_info['user_id'], username=image_info['username'])
+            imageObj.source_url = image_info["url"]
+            imageObj.save()
+
 
 def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()
@@ -186,7 +176,7 @@ def post_to_instagram(request, pk):
     i.post_image(image_path=post.image.path, caption=caption, usertags=usertags)
     data = {}
     data['instagram_user'] = username
-    return render(request, 'post_confirmation.html', {'data': data})
+    return redirect(saved_images)
 
 def update_caption(request, pk):
     collage = get_object_or_404(Collage, pk=pk)
@@ -200,6 +190,7 @@ def update_caption(request, pk):
                     'caption_form': form }
                   )
 
+@login_required(login_url='/login')
 def saved_images(request):
     collages = Collage.objects.all()
     if request.method == "GET" and "image-selection" in request.GET:
