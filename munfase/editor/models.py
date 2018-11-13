@@ -129,9 +129,9 @@ class SelfieImage(UserUploadedImage):
     instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
-        if instagram_user:
+        if self.instagram_user:
             return self.instagram_user.username
-        elif username:
+        elif self.username:
             return self.username
         else:
             return "unknown username"
@@ -146,8 +146,8 @@ class TextureImage(UserUploadedImage):
     instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete=models.CASCADE)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
-        if description:
-            return description
+        if self.description:
+            return self.description
         else:
             return "unknown image"
 
