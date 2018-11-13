@@ -129,7 +129,12 @@ class SelfieImage(UserUploadedImage):
     instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
-        return self.username
+        if instagram_user:
+            return self.instagram_user.username
+        elif username:
+            return self.username
+        else:
+            return "unknown username"
 
 class TextureImage(UserUploadedImage):
     """docstring for TextureImage"""
@@ -141,7 +146,10 @@ class TextureImage(UserUploadedImage):
     instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete=models.CASCADE)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
     def __str__(self):
-        return self.username
+        if description:
+            return description
+        else:
+            return "unknown image"
 
 class PreviewImage(models.Model):
     image = models.ImageField(upload_to="preview", editable=True, null=True, blank=True, storage=OverwriteStorage())
@@ -157,6 +165,8 @@ class PreviewImage(models.Model):
     background_transparency = models.IntegerField(default=125)
     foreground_inverted = models.BooleanField(default=False)
     background_inverted = models.BooleanField(default=False)
+    def __str__(self):
+        return "User-edited image"
     def process_image_files(self, name=None, background_alpha=200, foreground_alpha=200):
         buffer = BytesIO()
         if self.selfie:
