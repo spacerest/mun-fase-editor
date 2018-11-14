@@ -134,7 +134,7 @@ def process_image_upload(form):
     if form.is_valid():
         imageObj = form.save()
         if imageObj.instagram_post_url:
-            i = ig(test=True)
+            i = ig(test=False)
             imageObj = form.save()
             image_info = i.get_image_info(imageObj.instagram_post_url)
             imageObj.media_id = image_info["media_id"]
@@ -160,7 +160,7 @@ def delete_image(request, pk, template_name="upload_image.html"):
         return render(request, template_name, {'object': image})
 
 def post_to_instagram(request, pk):
-    i = ig(test=True)
+    i = ig(test=False)
     post = get_object_or_404(Collage, pk=pk)
 
     #get current username based on user_id
