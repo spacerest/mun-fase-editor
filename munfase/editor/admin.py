@@ -8,4 +8,5 @@ admin.site.register(TextureImage)
 admin.site.register(SelfieImage)
 admin.site.register(PreviewImage)
 admin.site.register(Collage)
+admin.site.register(InstagramUser)
 

@@ -19,7 +19,7 @@ nav {
   display: flex;
   justify-content: space-between;
   padding: 5px;
-  border-bottom: 1px solid #076a70; }
+  border-bottom: 1px solid #33588c; }
 
 nav .welcome {
   margin: 0; }
@@ -36,10 +36,25 @@ h2 {
   font-weight: 400; }
 
 a {
-  color: #076a70;
+  color: #33588c;
   text-decoration: none; }
   a:hover {
     color: #222; }
+
+input, select, textarea {
+  background-color: transparent;
+  box-shadow: none;
+  border-style: solid;
+  border: 1px solid #33588c; }
+
+input[type=file] {
+  border: 0px; }
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: none; }
 
 .button, input, input[type='submit'] {
   font-size: 1em;
@@ -58,10 +73,10 @@ input[type='submit'] {
   text-align: center;
   background-color: #b8ffaa;
   color: #222;
-  border: 1px solid #076a70;
+  border: 1px solid #33588c;
   transition: ease-in-out .2s; }
   .button:hover, input[type='submit'].button:hover {
-    color: #076a70; }
+    color: #33588c; }
 
 .img-group-container {
   width: 100%;
@@ -107,7 +122,6 @@ label > input[type="submit"], label.img-select, .selected-image-preview {
   padding: 25px;
   padding-bottom: 50px;
   margin-bottom: 50px;
-  text-align: left;
   background-color: rgba(255, 255, 255, 0.6); }
   @media screen and (max-width: 740px) {
     .sub-container {
@@ -115,8 +129,11 @@ label > input[type="submit"], label.img-select, .selected-image-preview {
       padding: 10px 20px; } }
 
 form {
-  text-align: left;
-  display: inline-block; }
+  display: inline-block;
+  margin: 0 auto; }
+
+form.full-width {
+  text-align: left; }
 
 .flex-parent-nowrap {
   display: flex;
@@ -169,7 +186,7 @@ footer {
   width: auto; }
 
 .current-caption {
-  background-color: #222;
+  background-color: #33588c;
   color: #ffebce;
   display: inline-block;
   align-self: center;
@@ -182,5 +199,23 @@ footer {
 
 .float-right {
   float: right; }
+
+table {
+  border-collapse: separate;
+  border-spacing: 10px 5px;
+  width: 100%; }
+
+td {
+  padding-left: 15px;
+  padding-right: 15px;
+  margin-left: 20px;
+  color: #33588c; }
+
+thead {
+  border-spacing: 20px 5px; }
+  thead td {
+    color: #ffebce;
+    padding: 10px;
+    background-color: #33588c; }
 
 /*# sourceMappingURL=style.css.map */

@@ -41,4 +41,4 @@ class CollageForm(ModelForm):
 class CaptionForm(ModelForm):
     class Meta:
         model = Collage
-        fields = ('selfie_user_id', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'percent_illuminated')
+        fields = ('selfie_username', 'background_user', 'background_description', 'foreground_user', 'foreground_description', 'moonstate_description', 'first_emoji', 'second_emoji', 'hashtags')

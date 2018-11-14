@@ -2,9 +2,22 @@
 {% load static %}
 
 {% block content %}
-<h1>e d i t</h1>
+<div class="container">
+    <div class="sub-container">
+<h1>edit</h1>
+<p>to make a new collage, please select an image for each of the following:</p>
+        <div class="container flex-parent-nowrap">
+            <a class="button" href="#moon">moon phase</a>
+            <a class="button" href="#selfies">selfie</a>
+            <a class="button" href="#foreground">foreground</a>
+            <a class="button" href="#background">background</a>
+        </div>
+</div>
+
+
 <div class="container flex-parent">
     <div class="sub-container flex-parent">
+        <p> make any edits to your collage that you'd like, then click "save current image" when you're finished.</p>
         <form method='POST' class="flex-child full-width">
             {% csrf_token %}
             <input class="button" type="submit" value="save current image" name="save-image"/>
@@ -16,15 +29,43 @@
         </div>
             <form method='POST' class="flex-child">
                 {% csrf_token %}
-                {{ preview_form.as_p }}
+
+                <table>
+                    <thead>
+                        <td>edits:</td>
+                    </thead>
+                    <tr>
+                        <td>{{preview_form.foreground_transparency.label }}</td></tr>
+                    <tr>
+                        <td>{{preview_form.foreground_transparency}}</td>
+                    </tr>
+                    <tr>
+                    <td>{{preview_form.background_transparency.label }}</td></tr>
+                    <tr>
+                        <td>{{preview_form.background_transparency}}</td>
+                    </tr>
+                    <tr>
+                        <td>{{preview_form.foreground_inverted.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{preview_form.foreground_inverted }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{preview_form.background_inverted.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{preview_form.background_inverted }}</td>
+                    </tr>
+                </table>
+
                 <input class="button" type="submit" value="update preview image" name="color-values"/>
             </form>
         </div>
 
         <div class="sub-container flex-child">
-       <h1>Choose the mirror selfie:</h1>
+       <h1 id="selfies">Choose the mirror selfie:</h1>
         {% if selfie_images %}
-        <form method="post" class="img-group-container">
+        <form  method="post" class="img-group-container">
             {% csrf_token %}
             {% for selfie_image in selfie_images %}
             <label class="img-select" for='selfie-{{ selfie_image.id }}' style=
@@ -39,10 +80,14 @@
     </div>
     <div class="sub-container flex-child">
        <h1>Texture images</h1>
-       <h2>Choose the moon foreground:</h2>
+       <h2 id="foreground">Choose the moon foreground:</h2>
         {% if texture_images %}
             <form method="post" class="img-group-container" name="foreground">
             {% csrf_token %}
+            <label class="img-select" for='foreground-{{ blank_texture_image.id }}' style=
+                      "background-image: url({{ MEDIA_URL }}{{ blank_texture_image.thumbnail }});">
+                <input type="submit" value="{{ blank_texture_image.id }}" name="foreground-selection"/>
+            </label>
             {% for texture_image in texture_images %}
                 <label class="img-select" for='foreground-{{ texture_image.id }}' style=
                       "background-image: url({{ MEDIA_URL }}{{ texture_image.thumbnail }});">
@@ -54,12 +99,16 @@
         <p>please go <a href="{% url 'image_library' %}">upload some images.</a></p>
         {% endif %}
 
-        <h2>Choose the background:</h2>
+        <h2 id="background">Choose the background:</h2>
         {% if texture_images %}
             <form method="post" class="img-group-container" name="texture">
             {% csrf_token %}
+            <label class="img-select" for='foreground-{{ blank_texture_image.id }}'
+                style="background-image: url({{ MEDIA_URL }}{{ blank_texture_image.thumbnail }});">
+                    <input type="submit" value="{{ blank_texture_image.id }}" name="foreground-selection"/>
+            </label>
             {% for texture_image in texture_images %}
-                <label class="img-select" for='texture-{{ texture_image.id }}' style=
+            <label class="img-select" for='texture-{{ texture_image.id }}' style=
                       "background-image: url({{ MEDIA_URL }}{{ texture_image.thumbnail }});">
                 <input type="submit" value="{{ texture_image.id }}" name="background-selection"/>
             </label>
@@ -70,7 +119,7 @@
         {% endif %}
         </div>
         <div class="sub-container flex-child">
-        <h1>Choose the moon phase template:</h1>
+        <h1 id="moon">Choose the moon phase template:</h1>
         {% if moon_images %}
             <form method="post" class="img-group-container">
             {% csrf_token %}

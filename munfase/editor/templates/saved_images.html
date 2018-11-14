@@ -7,7 +7,6 @@
 
     {% if selected_image %}
         <div class="sub-container flex-parent">
-        <div class="options-container">
         <form class="instagram-post flex-parent-nowrap" action="{% url 'post_to_instagram' pk=selected_image.id %}" method="post">
             {% csrf_token %}
             <input class="button" type="submit" value="post to instagram now" name="instagram-post" />
@@ -15,29 +14,68 @@
         <a class="float-right" href="{{ MEDIA_URL  }}{{ selected_image.image }}" download>download</a>
         </a>
 
-        <div class="flex-parent-nowrap">
+        <div class="flex-parent">
             <div class="open-cv-container" style=
                  "background-image: url({{ MEDIA_URL  }}{{ selected_image.image }});
                  background-size: cover;"></div>
 
             <div class="current-caption">
-                <p>{{ selected_image.first_emoji }} {{ selected_image.moon_state_description }} {{ selected_image.second_emoji }}</p>
+                <p>{{ selected_image.first_emoji }} {{ selected_image.moonstate_description }} {{ selected_image.second_emoji }}</p>
                 <p>*</p>
                 <p> 📷: {{ selected_image.selfie_username }}</p>
                 <p>*</p>
                 <p> {{ selected_image.foreground_description  }} as moon foreground</p>
                 <p>*</p>
                 <p> {{ selected_image.background_description  }} behind</p>
+                <p>*</p>
+                <p> {{ selected_image.hashtags  }}</p>
             </div>
         </div>
 
         <form action="{% url 'update_caption' pk=selected_image.id %}" method="post">
             {% csrf_token %}
-            {{ caption_form.as_p }}
+
+
+             <table>
+                     <tr>
+                        <td>{{caption_form.moonstate_description.label }}</td>
+                        <td>{{caption_form.selfie_username.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ caption_form.moonstate_description }}</td>
+                        <td>{{ caption_form.selfie_username }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{caption_form.foreground_description.label }}</td>
+                        <td>{{ caption_form.background_description.label }}</td>
+                    </tr>
+<tr>
+                        <td>{{caption_form.foreground_description }}</td>
+                        <td>{{ caption_form.background_description }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ caption_form.first_emoji.label }}</td>
+                        <td>{{ caption_form.second_emoji.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ caption_form.second_emoji }}</td>
+                        <td>{{ caption_form.first_emoji }}</td>
+                    </tr>
+
+
+
+                    <tr>
+                        <td>{{ caption_form.hashtags.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ caption_form.hashtags }}</td>
+                    </tr>
+
+               </table>
+
             <input class="button" type="submit" value="Update Caption Info" />
         </form>
         </div>
-    </div>
 
 
     {% endif %}
