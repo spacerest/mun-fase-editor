@@ -2,13 +2,52 @@
 {% load static %}
 
 {% block content %}
-<h1>u p l o a d</h1>
+<h1>upload</h1>
+<div class="container">
+    <div class="sub-container">
+<p> upload the following layers to use in your collage. after uploading, go to <a href="/edit">edit</a> to make a new collage.</p>
+<div class="container flex-parent-nowrap">
+        <a class="button" href="#textures">textures</a>
+        <a class="button" href="#selfies">selfies</a>
+        <a class="button" href="#moon">moon</a>
+</div>
+</div>
 <div class="container flex-parent">
-    <div class="sub-container flex-child">
+    <div id="textures" class="sub-container flex-child">
         <h1>textures</h1>
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" class="full-width">
             {% csrf_token %}
-                {{ texture_upload_form.as_p }}
+                <table>
+                    <thead>
+                        <td>select image one of these ways:</td>
+                        <td>*optional info: </td>
+                    </thead>
+                    <tr>
+                        <td>{{texture_upload_form.instagram_post_url.label }}</td>
+                        <td>{{texture_upload_form.hashtags.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ texture_upload_form.instagram_post_url }}</td>
+                        <td>{{texture_upload_form.hashtags }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>{{texture_upload_form.source_url.label }}</td>
+                        <td>{{texture_upload_form.username.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ texture_upload_form.source_url }}</td>
+                        <td>{{texture_upload_form.username }}</td>
+                    </tr>
+                    <tr>
+
+                        <td>{{texture_upload_form.image.label }}</td>
+                        </tr>
+                        <tr>
+                        <td>{{ texture_upload_form.image }}</td>
+                    </tr>
+                </table>
+
                 <input class="button" type="submit" value="Upload" name="texture-upload" >
               <br>
           </form>
@@ -27,23 +66,41 @@
         {% endif %}
     </div>
 
-    <div class="sub-container flex-child">
+    <div id="selfies" class="sub-container flex-child">
         <h1>mirror selfies</h1>
+        <form method="post" enctype="multipart/form-data" class="full-width">
+            {% csrf_token %}
+                <table>
+                    <thead>
+                        <td>select image one of these ways:</td>
+                        <td>*optional info: </td>
+                    </thead>
+                    <tr>
+                        <td>{{selfie_upload_form.instagram_post_url.label }}</td>
+                        <td>{{selfie_upload_form.hashtags.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ selfie_upload_form.instagram_post_url }}</td>
+                        <td>{{selfie_upload_form.hashtags }}</td>
+                    </tr>
 
-        <h2>...Instagram post URL </h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ instagram_selfie_upload_form }}
-            <input class="button" type="submit" value="Upload" name="instagram-selfie-upload">
-            <br>
-        </form>
-        <br>
-        <br>
-        <br>
-        <h2>...your device</h2>
-        <form method="post" enctype="multipart/form-data" >
-            {% csrf_token %}
-                {{ selfie_upload_form.as_p }}
+                    <tr>
+                        <td>{{selfie_upload_form.source_url.label }}</td>
+                        <td>{{selfie_upload_form.username.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ selfie_upload_form.source_url }}</td>
+                        <td>{{selfie_upload_form.username }}</td>
+                    </tr>
+                    <tr>
+
+                        <td>{{selfie_upload_form.image.label }}</td>
+                        </tr>
+                        <tr>
+                        <td>{{ selfie_upload_form.image }}</td>
+                    </tr>
+                </table>
+
                 <input class="button" type="submit" value="Upload" name="selfie-upload">
               <br>
           </form>
@@ -62,11 +119,34 @@
         {% endif %}
     </div>
 
-    <div class="sub-container flex-child">
+    <div id="moon" class="sub-container flex-child">
         <h1>moon phase templates</h1>
-        <form method="post" enctype="multipart/form-data" >
+        <form method="post" enctype="multipart/form-data" class="full-width">
             {% csrf_token %}
-                {{ moon_upload_form.as_p }}
+
+                <table>
+                    <thead>
+                        <td>select template:</td>
+                        <td>extra info:</td>
+                    </thead>
+                    <tr>
+                        <td>{{moon_upload_form.image.label }}</td>
+                        <td>{{moon_upload_form.percent_illuminated.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ moon_upload_form.image }}</td>
+                        <td>{{moon_upload_form.percent_illuminated }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>{{moon_upload_form.moon_state.label }}</td>
+                        </tr>
+                        <tr>
+                        <td></td>
+                        <td>{{moon_upload_form.moon_state }}</td>
+                    </tr>
+                </table>
+
                 <input class="button" type="submit" value="Upload" name="moon-upload">
               <br>
           </form>

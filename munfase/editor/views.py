@@ -67,6 +67,7 @@ def edit_image(request):
     moon_images = MoonTemplate.objects.order_by('percent_illuminated')
     selfie_images = SelfieImage.objects.filter(used=False).order_by('date_uploaded')
     texture_images = TextureImage.objects.filter(used=False).order_by('date_uploaded')
+    blank_texture_image = TextureImage.objects.filter(is_blank_default=True).first()
     previewImage = PreviewImage.objects.all().first() or PreviewImage()
     previewForm = PreviewForm(instance=previewImage)
     extraInfo = request.POST
@@ -94,7 +95,8 @@ def edit_image(request):
                        'extra_info': extraInfo,
                        'moon_images': moon_images,
                        'selfie_images': selfie_images,
-                       'texture_images': texture_images }
+                       'texture_images': texture_images,
+                       'blank_texture_image': blank_texture_image }
                       )
 
 @login_required(login_url='/login')
@@ -172,7 +174,7 @@ def post_to_instagram(request, pk):
         usertags = []
 
     #format the caption based on the post
-    caption = "{}\n*\n📷: @{}\n*\n{}\n*\n{}".format(post.moonstate_description, username, post.background_description, post.foreground_description)
+    caption = "{} {} {}\n*\n📷: @{}\n*\n{} behind\n*\n{} as moon foreground\n*\n{}".format(post.first_emoji, post.moonstate_description, post.second_emoji, username, post.background_description, post.foreground_description, post.hashtags)
     i.post_image(image_path=post.image.path, caption=caption, usertags=usertags)
     data = {}
     data['instagram_user'] = username

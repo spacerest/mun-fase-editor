@@ -138,13 +138,14 @@ class SelfieImage(UserUploadedImage):
 
 class TextureImage(UserUploadedImage):
     """docstring for TextureImage"""
-    username = models.CharField(default="none", max_length=50)
+    username = models.CharField(default="", max_length=50, blank=True, null=True)
     used = models.BooleanField(default=False)
     description = models.TextField(max_length = 400, null=True, blank=True)
     instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
     media_id = models.CharField(default="", max_length=1000, blank = True, null = True)
     instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete=models.CASCADE)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
+    is_blank_default=models.BooleanField(default=False)
     def __str__(self):
         if self.description:
             return self.description
@@ -228,19 +229,44 @@ class PreviewImage(models.Model):
                 ))
 
 class Collage(UserUploadedImage):
-    selfie_media_id = models.CharField(default="", max_length=60)
-    selfie_user_id = models.CharField(default="", max_length=60)
+    #caption
+    ZODIAC_OPTIONS = (
+        ("♒", "aquarius" ),
+        ("♓", "pisces"),
+        ("♈","aries"),
+        ("♉","taurus"),
+        ("♊","gemini"),
+        ("♋","cancer"),
+        ("♌","leo"),
+        ("♍","virgo"),
+        ("♎","libra"),
+        ("♏","scorpio"),
+        ("♐","sagittarius"),
+        ("♑","capricorn"),
+    )
+    first_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius", null=True, blank=True)
+    second_emoji = models.CharField(max_length = 50, choices = ZODIAC_OPTIONS, default = "aquarius", null=True, blank=True)
+
+    selfie_media_id = models.CharField(default="", max_length=60, null=True, blank=True)
+    selfie_user_id = models.CharField(default="", max_length=60, null=True, blank=True)
+    selfie_username = models.CharField(default="", max_length=60, null=True, blank=True)
     background_user = models.CharField(max_length=60, null=True, blank=True)
     background_description = models.CharField(default=":)", max_length=60)
     foreground_user = models.CharField(max_length=60, null=True, blank=True)
-    foreground_description = models.CharField(default=":)", max_length=60)
+    foreground_description = models.CharField(default=":)", max_length=60, null=True, blank=True)
     percent_illuminated = models.IntegerField(default="0")
     moonstate_description = models.CharField(max_length=200,default="", null=True, blank=True)
-
+    hashtags = models.CharField(max_length=1000, default="", null=True, blank=True)
     def __str__(self):
         return str(self.image)
     def make_image(self, previewImg):
         buffer = BytesIO()
+        previewImg.selfie.used = True
+        previewImg.selfie.save()
+        previewImg.foreground.used = True
+        previewImg.foreground.save()
+        previewImg.background.used = True
+        previewImg.background.save()
         previewImageFile = Image.open(previewImg.image)
         previewImageFile.convert("RGB")
         previewImageFile.save(fp=buffer, format='JPEG')
@@ -262,7 +288,9 @@ class Collage(UserUploadedImage):
     @classmethod
     def create(cls, previewImg):
         selfie_user_id = previewImg.selfie.instagram_user.user_id
+        selfie_username = previewImg.selfie.instagram_user.username
         selfie_media_id = previewImg.selfie.media_id
+        hashtags = "{} {} {} {}".format(previewImg.moon.hashtags, previewImg.selfie.hashtags, previewImg.foreground.hashtags, previewImg.background.hashtags)
         moonstate_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,
                 previewImg.moon.percent_illuminated,
@@ -282,6 +310,7 @@ class Collage(UserUploadedImage):
         return cls(
             image = None,
             selfie_user_id = previewImg.selfie.instagram_user.user_id,
+            selfie_username = previewImg.selfie.instagram_user.username,
             selfie_media_id = previewImg.selfie.media_id,
             background_user = background_user,
             foreground_user = foreground_user,
