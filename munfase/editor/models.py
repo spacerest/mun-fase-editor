@@ -64,12 +64,12 @@ class UserUploadedImage(models.Model):
             image_height = self.image.height
             new_width = image_size[0]
             new_height = image_size[1]
-            if (image_width < image_height):
-                new_width = image_size[0]
-                new_height = int(image_size[1] * image_height / image_width)
-            elif (image_height < image_width):
-                new_height = image_size[1]
-                new_width = int(image_size[0] * image_height / image_width)
+            if (image_width <= image_height):
+                ratio = int(image_size[0] / image_width)
+            elif (image_height <= image_width):
+                ratio = int(image_size[1] / image_height)
+            new_width = image_width * ratio
+            new_height = image_height * ratio
             image = image.resize((new_width, new_height), Image.ANTIALIAS)
             image.save(image_filename)
 
