@@ -55,13 +55,13 @@
           </form>
 
         {% if texture_images %}
-        <h2>Delete existing texture images?</h2>
+        <h2>Edit existing texture images</h2>
             {% for texture_image in texture_images %}
-            <form method="post" action="{% url 'delete_image' pk=texture_image.id %}">
+            <form method="post" action="{% url 'image' pk=texture_image.id %}">
                 {% csrf_token %}
                 <label class="img-select" for='foreground-{{ texture_image.id }}' style=
                       "background-image: url({{ MEDIA_URL }}{{ texture_image.thumbnail }});">
-                <input type="submit" value="{{ texture_image.id }}" name="delete-selection"/>
+                <input type="submit" value="{{ texture_image.id }}"/>
             </label>
             </form>
             {% endfor %}
@@ -108,13 +108,13 @@
           </form>
 
         {% if selfie_images %}
-        <h2>Delete existing selfies?</h2>
+        <h2>Edit existing selfies</h2>
             {% for selfie_image in selfie_images %}
-            <form method="post" action="{% url 'delete_image' pk=selfie_image.id %}">
+            <form method="post" action="{% url 'image' pk=selfie_image.id %}">
                 {% csrf_token %}
             <label class="img-select" for='selfie-{{ selfie_image.id }}' style=
                       "background-image: url({{ MEDIA_URL }}{{ selfie_image.thumbnail }});">
-                <input type="submit" value="{{ selfie_image.id }}" name="delete-selection"/>
+                <input type="submit" value="{{ selfie_image.id }}"/>
             </label>
             </form>
             {% endfor %}
@@ -153,13 +153,13 @@
               <br>
           </form>
         {% if moon_images %}
-        <h2>Delete existing moon templates?</h2>
+        <h2>Edit existing moon templates</h2>
             {% for moon_image in moon_images %}
-            <form method="post" action="{% url 'delete_image' pk=moon_image.pk %}">
+            <form method="post" action="{% url 'image' pk=moon_image.pk %}">
                 {% csrf_token %}
             <label class="img-select" for='moon-{{ moon_image.id }}' style=
                       "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
-                <input type="submit" value="{{ moon_image.id }}" name="delete-selection"/>
+                <input type="submit" value="{{ moon_image.id }}"/>
             </label>
             </form>
             {% endfor %}

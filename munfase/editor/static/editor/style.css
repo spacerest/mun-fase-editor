@@ -6,7 +6,7 @@ html {
 body {
   max-width: 80vw;
   margin: auto;
-  background-color: #ffebce;
+  background-color: #f9f9f9;
   color: #222;
   font: Arial, Helvetica, sans-serif;
   font-weight: 400; }
@@ -71,7 +71,7 @@ input[type='submit'] {
   line-height: 35px;
   margin: 5px 10px;
   text-align: center;
-  background-color: #b8ffaa;
+  background-color: #add0ed;
   color: #222;
   border: 1px solid #33588c;
   transition: ease-in-out .2s; }
@@ -94,7 +94,7 @@ label.img-select, .selected-image-preview {
   display: inline-block;
   padding: 0 0 0 0px;
   box-sizing: border-box;
-  background-color: #b8ffaa; }
+  background-color: #add0ed; }
 
 label > input[type="submit"], label.img-select, .selected-image-preview {
   height: 130px;
@@ -188,7 +188,7 @@ footer {
 
 .current-caption {
   background-color: #33588c;
-  color: #ffebce;
+  color: #f9f9f9;
   display: inline-block;
   align-self: center;
   padding: 10px 30px;
@@ -215,8 +215,16 @@ td {
 thead {
   border-spacing: 20px 5px; }
   thead td {
-    color: #ffebce;
+    color: #f9f9f9;
     padding: 10px;
     background-color: #33588c; }
+
+.delete {
+  background-color: #f48342 !important; }
+
+.non-submit {
+  padding: 5px 8px;
+  float: left;
+  max-width: 50%; }
 
 /*# sourceMappingURL=style.css.map */

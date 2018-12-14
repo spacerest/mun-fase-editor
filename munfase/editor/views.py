@@ -89,7 +89,7 @@ def edit_image(request):
     if previewForm.is_valid():
         previewImage = previewForm.save()
     previewImage.process_image_files(name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
-    return render(request, 'edit_image.html',
+    return render(request, 'make_post.html',
                       {'preview_form': previewForm,
                        'preview_image': previewImage,
                        'extra_info': extraInfo,
@@ -153,14 +153,6 @@ def log_into_instagram(request):
     previewImage = PreviewImage.objects.first()
     return render(request, 'post_confirmation.html', {'instagram_user': instagram_user})
 
-def delete_image(request, pk, template_name="upload_image.html"):
-    image = get_object_or_404(UserUploadedImage, pk=pk)
-    if request.method=='POST':
-        image.delete()
-        return redirect('/image-library/')
-    else:
-        return render(request, template_name, {'object': image})
-
 def post_to_instagram(request, pk):
     i = ig(test=False)
     post = get_object_or_404(Collage, pk=pk)
@@ -178,7 +170,7 @@ def post_to_instagram(request, pk):
     i.post_image(image_path=post.image.path, caption=caption, usertags=usertags)
     data = {}
     data['instagram_user'] = username
-    return redirect(saved_images)
+    return redirect(show_saved_collages)
 
 def update_caption(request, pk):
     collage = get_object_or_404(Collage, pk=pk)
@@ -186,24 +178,63 @@ def update_caption(request, pk):
     form = CaptionForm(request.POST or None, instance = collage)
     if form.is_valid():
         form.save()
-    return render(request, 'saved_images.html',
+    return render(request, 'post.html',
                   { 'collages': collages,
                     'selected_image': collage,
                     'caption_form': form }
                   )
 
 @login_required(login_url='/login')
-def saved_images(request):
+def show_saved_collages(request):
     collages = Collage.objects.all()
     if request.method == "GET" and "image-selection" in request.GET:
         selectedImage = Collage.objects.filter(pk=request.GET.get('image-selection')).last()
     else:
         selectedImage = collages.last()
     captionForm = CaptionForm(instance=selectedImage)
-    return render(request, 'saved_images.html',
+    return render(request, 'post.html',
                   { 'collages': collages,
                     'selected_image': selectedImage,
                     'caption_form': captionForm }
                   )
 
+def image(request, pk):
+    image = get_object_or_404(TextureImage, pk=pk)
+    if (isinstance(image, SelfieImage)):
+        form = SelfieUploadForm(instance=image)
+        image_type = 'SelfieImage'
+    if (isinstance(image, TextureImage)):
+        form = TextureUploadForm(instance=image)
+        image_type = 'TextureImage'
+    if (isinstance(image, MoonTemplate)):
+        form = MoonUploadForm(instance=image)
+        image_type = 'MoonTemplate'
+    return render(request, 'image.html',
+                  { 'form': form,
+                    'image_type': image_type,
+                    'image_pk': pk})
+
+def edit_existing_image(request, pk, image_type):
+    if request.method=='POST' and image_type == 'TextureImage':
+        image = get_object_or_404(TextureImage, pk=pk)
+        form = TextureUploadForm(request.POST, request.FILES, instance=image)
+    elif request.method=='POST' and image_type == 'SelfieImage':
+        image = get_object_or_404(SelfieImage, pk=pk)
+        form = SelfieUploadForm(request.POST, request.FILES, instance=image)
+    elif request.method=='POST' and image_type == 'MoonTemplate':
+        image = get_object_or_404(MoonTemplate, pk=pk)
+        form = MoonUploadForm(request.POST, request.FILES, instance=image)
+    if form.is_valid():
+        item = form.save()
+        return redirect(manage_images)
+    else:
+        return render(request, 'image.html', {'form': form })
+
+def delete_image(request, pk, template_name="edit.html"):
+    image = get_object_or_404(UserUploadedImage, pk=pk)
+    if request.method=='POST':
+        image.delete()
+        return redirect('/image-library/')
+    else:
+        return render(request, template_name, {'object': image})
 

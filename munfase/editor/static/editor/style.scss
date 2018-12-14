@@ -6,11 +6,12 @@
 
 $on-palm:          740px;
 
-$trim-color: #b8ffaa;
-$main-color: #ffebce;
+$trim-color: #add0ed;//#b8ffaa;
+$main-color: #f9f9f9;
 $highlight-color: #33588c;
 $text-color: #222;
 $quiet-color: #777;
+$warning-color: #f48342;
 
 html {
     min-height: 100%;
@@ -280,4 +281,12 @@ thead {
     }
 }
 
+.delete {
+    background-color: $warning-color!important;
+}
 
+.non-submit {
+    padding: 5px 8px;
+    float: left;
+    max-width: 50%;
+}

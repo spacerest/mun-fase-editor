@@ -2,21 +2,107 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
+<div class="container flex-parent">
+<div id="textures" class="sub-container flex-child">
+    <a href="{% url 'image_library' %}" class="button non-submit"><< Go Back</a>
+                <form method="post" enctype="multipart/form-data" class="full-width" action="{% url 'edit_existing_image' pk=image_pk image_type=image_type %}">
+                {% csrf_token %}
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <p> {{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+                    <table>
+ {% if image_type == 'TextureImage' %}
+                        <thead>
+                            <td>select image one of these ways:</td>
+                            <td>*optional info: </td>
+                        </thead>
+                        <tr>
+                            <td>{{form.instagram_post_url.label }}</td>
+                            <td>{{form.hashtags.label }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form.instagram_post_url }}</td>
+                            <td>{{form.hashtags }}</td>
+                        </tr>
 
-    <!-- Jumbotron Header -->
-        <h1>Please choose the moon pic yo</h1>
-        <h1></h1>
-        <p>
-          <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="media">
-                {{ form.as_p }}
-                <input type="submit" value="Upload">
-              <br>
+                        <tr>
+                            <td>{{form.source_url.label }}</td>
+                            <td>{{form.username.label }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form.source_url }}</td>
+                            <td>{{form.username }}</td>
+                        </tr>
+                        <tr>
+
+                            <td>{{form.image.label }}</td>
+                            <td>{{form.description.label }}</td>
+                            </tr>
+                            <tr>
+                            <td>{{ form.image }}</td>
+                            <td>{{ form.description }}</td>
+                        </tr>
+                    </table>
+ {% elif image_type == 'MoonTemplate' %}
+                    <thead>
+                        <td>select template:</td>
+                        <td>extra info:</td>
+                    </thead>
+                    <tr>
+                        <td>{{form.image.label }}</td>
+                        <td>{{form.percent_illuminated.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form.image }}</td>
+                        <td>{{form.percent_illuminated }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>{{form.moon_state.label }}</td>
+                        </tr>
+                        <tr>
+                        <td></td>
+                        <td>{{form.moon_state }}</td>
+                    </tr>
+ {% elif image_type == 'SelfieImage' %}
+                    <thead>
+                        <td>select image one of these ways:</td>
+                        <td>*optional info: </td>
+                    </thead>
+                    <tr>
+                        <td>{{form.instagram_post_url.label }}</td>
+                        <td>{{form.hashtags.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form.instagram_post_url }}</td>
+                        <td>{{form.hashtags }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>{{form.source_url.label }}</td>
+                        <td>{{form.username.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form.source_url }}</td>
+                        <td>{{form.username }}</td>
+                    </tr>
+                    <tr>
+
+                        <td>{{form.image.label }}</td>
+                        </tr>
+                        <tr>
+                        <td>{{ form.image }}</td>
+                    </tr>
+                {% endif %}
+                </table>
+                <input class="button" type="submit" value="Save Changes" >
           </form>
-        </p>
-        <br>
-        </div>
+                <form class="full-width" method="post" action="{% url 'delete_image' pk=image_pk %}">
+                    {% csrf_token %}
+                    <input class="button delete" type="submit" value="Delete Image" />
+                </form>
+
 
 {% endblock %}

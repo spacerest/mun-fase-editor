@@ -44,6 +44,8 @@ class UserUploadedImage(models.Model):
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True, blank=True, null=True)
     source_url = models.URLField(max_length=2000, blank=True, null=True)
+    def get_type(self):
+        return self.__name__
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
         super(UserUploadedImage, self).save(*args, **kwargs)
         if not self.id:
