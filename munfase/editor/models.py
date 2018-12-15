@@ -32,6 +32,9 @@ from io import BytesIO
 from urllib.request import urlopen
 from tempfile import NamedTemporaryFile
 
+#data uri
+import base64
+
 # Create your models here.
 #
 #
@@ -44,6 +47,7 @@ class UserUploadedImage(models.Model):
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True, blank=True, null=True)
     source_url = models.URLField(max_length=2000, blank=True, null=True)
+
     def get_type(self):
         return self.__name__
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
@@ -67,11 +71,11 @@ class UserUploadedImage(models.Model):
             new_width = image_size[0]
             new_height = image_size[1]
             if (image_width <= image_height):
-                ratio = int(image_size[0] / image_width)
+                ratio = image_size[0] / image_width
             elif (image_height <= image_width):
-                ratio = int(image_size[1] / image_height)
-            new_width = image_width * ratio
-            new_height = image_height * ratio
+                ratio = image_size[1] / image_height
+            new_width = int(image_width * ratio)
+            new_height = int(image_height * ratio)
             image = image.resize((new_width, new_height), Image.ANTIALIAS)
             image.save(image_filename)
 
@@ -83,6 +87,7 @@ class UserUploadedImage(models.Model):
             image.seek(0)
             self.thumbnail.save(self.image.name,
                            ContentFile(buffer.getvalue()), save=False)
+
             image.close()
             super(UserUploadedImage, self).save(*args, **kwargs)
 
@@ -130,6 +135,63 @@ class SelfieImage(UserUploadedImage):
     instagram_user = models.ForeignKey(InstagramUser, null=True, blank=True, on_delete = models.CASCADE)
     instagram_post_url = models.URLField(max_length=1000, blank=True, null=True)
     hashtags = models.CharField(max_length=1000, blank=True, null=True)
+    def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
+        super(UserUploadedImage, self).save(*args, **kwargs)
+        if not self.id:
+            return
+        if self.source_url and not self.image:
+            image_filename = "{}.jpg".format(
+               datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+           )
+            img_temp = NamedTemporaryFile(delete = True)
+            img_temp.write(urlopen(self.source_url).read())
+            img_temp.flush()
+            self.image.save(image_filename, File(img_temp), save=False)
+        if self.image:
+            image_filename = str(self.image.path)
+            image = Image.open(image_filename)
+            white_image = Image.new('RGB', (1000,1000), 'white')
+            #resize the fullsize image
+            image_width = self.image.width
+            image_height = self.image.height
+            new_width = image_size[0]
+            new_height = image_size[1]
+            if (image_width <= image_height):
+                ratio = image_size[1] / image_height
+            elif (image_height <= image_width):
+                ratio = image_size[0] / image_width
+            new_width = int(image_width * ratio)
+            new_height = int(image_height * ratio)
+            image = image.resize((new_width, new_height), Image.ANTIALIAS)
+            white_image.paste(image, (int((image_size[0] - new_width)/2),int((image_size[1] - new_height)/2)))
+            white_image.save(image_filename)
+
+            #make a separate thumbnail
+            buffer = BytesIO()
+            image = Image.open(self.image.path)
+            image = ImageOps.fit(image, thumbnail_size, Image.ANTIALIAS)
+            image.save(fp=buffer, format='PNG')
+            image.seek(0)
+            self.thumbnail.save(self.image.name,
+                           ContentFile(buffer.getvalue()), save=False)
+
+            #make a data uri
+            if (image.width <= image.height):
+                ratio = 50.0 / image.width
+            elif (image.height <= image.width):
+                ratio = 50.0 / image.height
+            new_width = int(image.width * ratio)
+            new_height = int(image.height * ratio)
+            image = image.resize((new_width,new_height), Image.ANTIALIAS)
+            buffered = BytesIO()
+            image.save(fp=buffered, format='PNG')
+            im_data = buffered.getvalue()
+            self.image_data_uri = 'data:image/png;base64,' + base64.b64encode(im_data).decode(encoding="utf-8", errors="strict")
+
+            image.close()
+            super(UserUploadedImage, self).save(*args, **kwargs)
+
+
     def __str__(self):
         if self.instagram_user:
             return self.instagram_user.username
@@ -160,6 +222,8 @@ class PreviewImage(models.Model):
     moon = models.ForeignKey(MoonTemplate, blank=True, null=True, on_delete=models.CASCADE)
     foreground = models.ForeignKey(TextureImage, blank=True, null=True, on_delete=models.CASCADE, related_name='foreground')
     background = models.ForeignKey(TextureImage, blank=True, null=True, on_delete=models.CASCADE, related_name='background')
+    image_data_uri = models.CharField(null=True, blank=True, default="", max_length=100000000)
+    small_image = models.ImageField(upload_to="preview", editable=True, null=True, blank=True, storage=OverwriteStorage())
 
     #caption
     #image transformation settings
@@ -168,67 +232,33 @@ class PreviewImage(models.Model):
     background_transparency = models.IntegerField(default=125)
     foreground_inverted = models.BooleanField(default=False)
     background_inverted = models.BooleanField(default=False)
+
+    selfie_top_border = models.IntegerField(default = 50)
+    selfie_right_border = models.IntegerField(default = 50)
+    selfie_left_border = models.IntegerField(default = 50)
+    selfie_bottom_border = models.IntegerField(default = 50)
+
     def __str__(self):
         return "User-edited image"
-    def process_image_files(self, name=None, background_alpha=200, foreground_alpha=200):
-        buffer = BytesIO()
-        if self.selfie:
-            selfie = Image.open(self.selfie.image)
-            moon_shaped_selfie = Image.open(self.selfie.image)
-        else:
-            selfie = Image.new('RGB', (1000,1000), 'black')
-            moon_shaped_selfie = Image.new('RGB', (1000,1000), 'black')
-        selfie = ImageOps.fit(selfie, (1000, 1000), Image.ANTIALIAS)
-        moon_shaped_selfie = ImageOps.fit(moon_shaped_selfie, (1000,1000), Image.ANTIALIAS)
-        if self.moon:
-            moon_mask = Image.open(self.moon.image, 'r')
-            moon_mask_transparent = Image.open(self.moon.image, 'r')
-        else:
-            moon_mask = Image.new('RGB', (1000,1000), 'black')
-            moon_mask_transparent = Image.new('RGB', (1000,1000), 'black')
-        moon_mask = moon_mask.convert("L")
-        moon_mask_transparent = moon_mask_transparent.point(lambda i: min(i * 25, foreground_alpha))
-        moon_mask_transparent = moon_mask_transparent.convert("L")
+    def make_final_size(self, name=None, background_alpha=200, foreground_alpha=200, top_border=0, right_border=0, bottom_border=0, left_border=0):
+        make_collage(self, file_name="temp.jpg", dim=1000, name=None)
+    def process_image_files(self, name=None, background_alpha=200, foreground_alpha=200, top_border=0, right_border=0, bottom_border=0, left_border=0):
+        make_collage(self, file_name="small_temp.jpg", dim=450, name=None)
+        #make data uri
+        image = Image.open(self.image.path)
+        if (image.width <= image.height):
+            ratio = 50.0 / image.width
+        elif (image.height <= image.width):
+            ratio = 50.0 / image.height
+        new_width = int(image.width * ratio)
+        new_height = int(image.height * ratio)
 
-        if self.background:
-            background = Image.open(self.background.image, 'r')
-            background = ImageOps.fit(background, (1000,1000), Image.ANTIALIAS)
-        else:
-            background= Image.new('RGB',(1000,1000),'black')
+        image = image.resize((new_width,new_height), Image.ANTIALIAS)
+        buffered = BytesIO()
+        image.save(fp=buffered, format='PNG')
+        im_data = buffered.getvalue()
+        self.image_data_uri = 'data:image/png;base64,' + base64.b64encode(im_data).decode(encoding="utf-8", errors="strict")
 
-        if self.foreground:
-            moon_shaped_foreground = Image.open(self.foreground.image)
-            moon_shaped_foreground = ImageOps.fit(moon_shaped_foreground, (1000,1000), Image.ANTIALIAS)
-        else:
-            moon_shaped_foreground = Image.new('RGB', (1000,1000), 'black')
-        if self.background_inverted:
-            background = invert_image(background)
-        if self.foreground_inverted:
-            moon_shaped_foreground = invert_image(moon_shaped_foreground)
-        moon_shaped_selfie.putalpha(moon_mask)
-        background_mask = background.point(lambda i: background_alpha)
-        background_mask = background_mask.convert("L")
-
-        moon_shaped_foreground.putalpha(moon_mask_transparent)
-
-        #put transparent background over selfie
-        selfie.paste(background, (0,0), mask=background_mask)
-
-        #reput moon shaped selfie on top of transparent background
-        selfie.paste(moon_shaped_selfie, (0,0), mask=moon_shaped_selfie)
-
-        #put foreground over moon
-        selfie.paste(moon_shaped_foreground, (0,0), mask=moon_mask_transparent)
-        selfie.save(fp=buffer, format='PNG')
-        pillow_image = ContentFile(buffer.getvalue())
-        self.image.save('temp.jpg', InMemoryUploadedFile(
-                    pillow_image,
-                    None,
-                    'temp.jpg',
-                    'image/jpeg',
-                    pillow_image.tell,
-                    None
-                ))
 
 class Collage(UserUploadedImage):
     #caption
@@ -270,7 +300,7 @@ class Collage(UserUploadedImage):
         previewImg.background.used = True
         previewImg.background.save()
         previewImageFile = Image.open(previewImg.image)
-        previewImageFile.convert("RGB")
+        previewImageFile = previewImageFile.convert("RGB")
         previewImageFile.save(fp=buffer, format='JPEG')
         contentFile = ContentFile(buffer.getvalue())
         collageFileName = "{}_{}_{}.jpg".format(
@@ -289,6 +319,8 @@ class Collage(UserUploadedImage):
 
     @classmethod
     def create(cls, previewImg):
+        if not previewImg.selfie.instagram_user:
+            raise Exception("No instagram user associated with that image")
         selfie_user_id = previewImg.selfie.instagram_user.user_id
         selfie_username = previewImg.selfie.instagram_user.username
         selfie_media_id = previewImg.selfie.media_id
@@ -339,3 +371,89 @@ def change_contrast(img, level):
 
 def invert_image(img):
     return ImageOps.invert(img)
+
+def make_collage(self, dim=1000, file_name="small_temp.jpg", name=None):
+    img_size = (dim, dim)
+    buffer = BytesIO()
+    if self.selfie:
+        selfie = Image.open(self.selfie.image)
+        selfie = selfie.resize(img_size, Image.ANTIALIAS)
+        moon_shaped_selfie = Image.open(self.selfie.image)
+        moon_shaped_selfie = moon_shaped_selfie.resize(img_size, Image.ANTIALIAS)
+    else:
+        selfie = Image.new('RGB', img_size, 'black')
+        moon_shaped_selfie = Image.new('RGB', img_size, 'black')
+
+    #give the selfie image the requested white borders
+    white_background = Image.new('RGB', img_size, "white")
+
+    selfie = ImageOps.fit(selfie, img_size, Image.ANTIALIAS)
+    moon_shaped_selfie = ImageOps.fit(moon_shaped_selfie, img_size, Image.ANTIALIAS)
+
+    if self.moon:
+        moon_mask = Image.open(self.moon.image, 'r')
+        moon_mask = moon_mask.resize(img_size, Image.ANTIALIAS)
+        moon_mask_transparent = Image.open(self.moon.image, 'r')
+        moon_mask_transparent = moon_mask_transparent.resize(img_size, Image.ANTIALIAS)
+    else:
+        moon_mask = Image.new('RGB', img_size, 'black')
+        moon_mask_transparent = Image.new('RGB', img_size, 'black')
+
+    moon_mask = moon_mask.convert("L")
+    moon_mask_transparent = moon_mask_transparent.point(lambda i: min(i * 25, self.foreground_transparency))
+    moon_mask_transparent = moon_mask_transparent.convert("L")
+
+    if self.background:
+        background = Image.open(self.background.image, 'r')
+        background = ImageOps.fit(background, img_size, Image.ANTIALIAS)
+    else:
+        background= Image.new('RGB',img_size,'black')
+
+    if self.foreground:
+        moon_shaped_foreground = Image.open(self.foreground.image)
+        moon_shaped_foreground = ImageOps.fit(moon_shaped_foreground, img_size, Image.ANTIALIAS)
+    else:
+        moon_shaped_foreground = Image.new('RGB', img_size, 'black')
+
+    if self.background_inverted:
+        background = invert_image(background)
+    if self.foreground_inverted:
+        moon_shaped_foreground = invert_image(moon_shaped_foreground)
+
+    moon_shaped_selfie.putalpha(moon_mask)
+    background_mask = background.point(lambda i: self.background_transparency)
+    background_mask = background_mask.convert("L")
+    moon_shaped_foreground.putalpha(moon_mask_transparent)
+
+    #put transparent background over selfie
+    selfie.paste(background, (0,0), mask=background_mask)
+
+    #reput moon shaped selfie on top of transparent background
+    selfie.paste(moon_shaped_selfie, (0,0), mask=moon_shaped_selfie)
+
+    #put foreground over moon
+    selfie.paste(moon_shaped_foreground, (0,0), mask=moon_mask_transparent)
+
+    selfie = selfie.resize(img_size, Image.ANTIALIAS)
+    selfie.save(fp=buffer, format='PNG')
+    pillow_image = ContentFile(buffer.getvalue())
+    if dim < 1000:
+        self.small_image.save(file_name, InMemoryUploadedFile(
+                    pillow_image,
+                    None,
+                    file_name,
+                    'image/jpeg',
+                    pillow_image.tell,
+                    None
+        ))
+    else:
+        self.image.save(file_name, InMemoryUploadedFile(
+                    pillow_image,
+                    None,
+                    file_name,
+                    'image/jpeg',
+                    pillow_image.tell,
+                    None
+        ))
+
+

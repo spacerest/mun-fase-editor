@@ -144,6 +144,10 @@ label > input[type="submit"], label.img-select, .selected-image-preview {
 .open-cv-container {
     height: 30vw;
     width: 30vw;
+    @include media-query($on-palm) {
+        height: 75vw;
+        width: 75vw;
+    }
     max-height: 500px;
     max-width: 500px;
     display: inline-block;
@@ -270,6 +274,11 @@ td {
     padding-right: 15px;
     margin-left: 20px;
     color: $highlight-color;
+    a {
+        word-wrap:break-word;
+        display: inline;
+        font-size: 10px;
+}
 }
 
 thead {
@@ -290,3 +299,11 @@ thead {
     float: left;
     max-width: 50%;
 }
+
+.hidden-image {
+    display: none;
+}
+
+.blurme {
+  -webkit-filter: url("#myblurfilter");
+  filter: url("#myblurfilter"); }

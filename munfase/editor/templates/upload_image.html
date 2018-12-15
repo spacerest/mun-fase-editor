@@ -2,10 +2,10 @@
 {% load static %}
 
 {% block content %}
-<h1>upload</h1>
+<h1>library</h1>
 <div class="container">
     <div class="sub-container">
-<p> upload the following layers to use in your collage. after uploading, go to <a href="/edit">edit</a> to make a new collage.</p>
+<p> upload the following layers to use in your collage. select existing images to edit details or delete. after uploading, go to <a href="/edit">edit</a> to make a new collage.</p>
 <div class="container flex-parent-nowrap">
         <a class="button" href="#textures">textures</a>
         <a class="button" href="#selfies">selfies</a>
@@ -57,10 +57,10 @@
         {% if texture_images %}
         <h2>Edit existing texture images</h2>
             {% for texture_image in texture_images %}
-            <form method="post" action="{% url 'image' pk=texture_image.id %}">
+            <form method="post" action="{% url 'image' pk=texture_image.id image_type="TextureImage" %}">
                 {% csrf_token %}
-                <label class="img-select" for='foreground-{{ texture_image.id }}' style=
-                      "background-image: url({{ MEDIA_URL }}{{ texture_image.thumbnail }});">
+                <label class="img-select" for='foreground-{{ texture_image.id }}' id="image-{{texture_image.id}}" style=
+                "background-image: url({{MEDIA_URL}}{{texture_image.thumbnail}})">
                 <input type="submit" value="{{ texture_image.id }}"/>
             </label>
             </form>
@@ -110,10 +110,10 @@
         {% if selfie_images %}
         <h2>Edit existing selfies</h2>
             {% for selfie_image in selfie_images %}
-            <form method="post" action="{% url 'image' pk=selfie_image.id %}">
+            <form method="post" action="{% url 'image' pk=selfie_image.id image_type="SelfieImage" %}">
                 {% csrf_token %}
-            <label class="img-select" for='selfie-{{ selfie_image.id }}' style=
-                      "background-image: url({{ MEDIA_URL }}{{ selfie_image.thumbnail }});">
+            <label class="img-select" for='selfie-{{ selfie_image.id }}' id="image-{{selfie_image.id}}" style=
+            "background-image: url({{MEDIA_URL}}{{selfie_image.thumbnail}})">
                 <input type="submit" value="{{ selfie_image.id }}"/>
             </label>
             </form>
@@ -155,10 +155,10 @@
         {% if moon_images %}
         <h2>Edit existing moon templates</h2>
             {% for moon_image in moon_images %}
-            <form method="post" action="{% url 'image' pk=moon_image.pk %}">
+            <form method="post" action="{% url 'image' pk=moon_image.pk image_type="MoonTemplate" %}">
                 {% csrf_token %}
-            <label class="img-select" for='moon-{{ moon_image.id }}' style=
-                      "background-image: url({{ MEDIA_URL }}{{ moon_image.thumbnail}});">
+                <label class="img-select" for='moon-{{ moon_image.id }}' id="image-{{moon_image.id}}" style=
+                "background-image: url({{MEDIA_URL}}{{moon_image.thumbnail}})">
                 <input type="submit" value="{{ moon_image.id }}"/>
             </label>
             </form>

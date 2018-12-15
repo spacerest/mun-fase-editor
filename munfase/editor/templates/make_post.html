@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container">
     <div class="sub-container">
-<h1>edit</h1>
+<h1>create</h1>
 <p>to make a new collage, please select an image for each of the following:</p>
         <div class="container flex-parent-nowrap">
             <a class="button" href="#moon">moon phase</a>
@@ -13,6 +13,12 @@
             <a class="button" href="#background">background</a>
         </div>
 </div>
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="height: 0px; width: 0px; display: block;">
+  <filter id="myblurfilter" width="130%" height="130%">
+  	<feGaussianBlur stdDeviation="9" result="blur" />
+  </filter>
+</svg>
 
 
 <div class="container flex-parent">
@@ -23,9 +29,10 @@
             <input class="button" type="submit" value="save current image" name="save-image"/>
             {{ saved_image_form.as_p }}
         </form>
-        <div class="open-cv-container flex-child" style=
-        "background-image: url({{ MEDIA_URL  }}{{ preview_image.image }});
+        <div class="open-cv-container flex-child blurme" id="preview-{{preview_image.id}}" style=
+        "background-image: url({{ preview_image.image_data_uri }});
          background-size: cover;">
+            <img onload="hideUri('preview-{{preview_image.id}}', '/media/preview/small_temp.jpg')" class="hello hidden-image" src="{{ MEDIA_URL  }}{{ preview_image.small_image }}" / >
         </div>
             <form method='POST' class="flex-child">
                 {% csrf_token %}

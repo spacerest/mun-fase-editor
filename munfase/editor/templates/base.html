@@ -6,6 +6,7 @@
     <title>mun fases</title>
     <link rel="stylesheet" type="text/css" href='{% static "editor/style.css" %}'>
     <link rel="icon" href="{% static 'editor/favicon.png' %}" type="image/png" />
+    <script src='{% static '/editor/images.js' %}'></script>
 </head>
 <body
     style="background-image: url({% static 'editor/moon.svg' %}); background-size: contain; background-repeat: no-repeat; background-attachment: fixed;"
@@ -13,9 +14,9 @@
     <nav>
         {% if request.user.is_authenticated %}
         <a class="mini-title" href="{% url 'home' %}" style="background-image: url({% static 'editor/m_f.svg' %}); background-size: contain; background-repeat: no-repeat;"></a>
-        <a href="{% url 'image_library' %}">upload</a>
-        <a href="{% url 'edit_image' %}">edit</a>
-        <a href="{% url 'saved_images' %}">post</a>
+        <a href="{% url 'image_library' %}">library</a>
+        <a href="{% url 'edit_image' %}">create</a>
+        <a href="{% url 'saved_images' %}">collages</a>
         <a href="{% url 'logout' %}">logout</a>
         {% else %}
         <a class="mini-title" href="{% url 'home' %}" style="background-image: url({% static 'editor/m_f.svg' %}); background-size: contain; background-repeat: no-repeat;"></a>

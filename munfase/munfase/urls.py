@@ -30,7 +30,7 @@ urlpatterns = [
     path('update/<int:pk>', editor.views.update_caption, name="update_caption"),
     path('saved/', editor.views.show_saved_collages, name="saved_images"),
     path('image/delete/<int:pk>', editor.views.delete_image, name="delete_image"),
-    path('image/<int:pk>', editor.views.image, name="image"),
+    path('image/<str:image_type>/<int:pk>', editor.views.image, name="image"),
     path('image/edit/<str:image_type>/<int:pk>', editor.views.edit_existing_image, name="edit_existing_image"),
     path('post/<int:pk>', editor.views.post_to_instagram, name="post_to_instagram"),
     path('instagram-login/', editor.views.log_into_instagram),

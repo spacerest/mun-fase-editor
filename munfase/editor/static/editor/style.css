@@ -111,6 +111,10 @@ label > input[type="submit"], label.img-select, .selected-image-preview {
   max-width: 500px;
   display: inline-block;
   margin: 15px; }
+  @media screen and (max-width: 740px) {
+    .open-cv-container {
+      height: 75vw;
+      width: 75vw; } }
 
 .container {
   display: inline-block;
@@ -211,6 +215,10 @@ td {
   padding-right: 15px;
   margin-left: 20px;
   color: #33588c; }
+  td a {
+    word-wrap: break-word;
+    display: inline;
+    font-size: 10px; }
 
 thead {
   border-spacing: 20px 5px; }
@@ -226,5 +234,12 @@ thead {
   padding: 5px 8px;
   float: left;
   max-width: 50%; }
+
+.hidden-image {
+  display: none; }
+
+.blurme {
+  -webkit-filter: url("#myblurfilter");
+  filter: url("#myblurfilter"); }
 
 /*# sourceMappingURL=style.css.map */

@@ -81,6 +81,7 @@ def edit_image(request):
         previewImage.background = TextureImage.objects.filter(pk=request.POST.get('background-selection')).first()
     elif request.method == 'POST' and 'save-image' in request.POST:
         previewForm = PreviewForm(request.POST, instance=previewImage)
+        previewImage.make_final_size()
         collage = Collage.create(previewImage)
         collage.make_image(previewImage)
         return redirect('/saved/')
@@ -192,23 +193,22 @@ def show_saved_collages(request):
     else:
         selectedImage = collages.last()
     captionForm = CaptionForm(instance=selectedImage)
-    return render(request, 'post.html',
+    return render(request, 'saved_images.html',
                   { 'collages': collages,
                     'selected_image': selectedImage,
                     'caption_form': captionForm }
                   )
 
-def image(request, pk):
-    image = get_object_or_404(TextureImage, pk=pk)
-    if (isinstance(image, SelfieImage)):
+def image(request, pk, image_type):
+    if image_type=="SelfieImage":
+        image = get_object_or_404(SelfieImage, pk=pk)
         form = SelfieUploadForm(instance=image)
-        image_type = 'SelfieImage'
-    if (isinstance(image, TextureImage)):
+    if image_type=="TextureImage":
+        image = get_object_or_404(TextureImage, pk=pk)
         form = TextureUploadForm(instance=image)
-        image_type = 'TextureImage'
-    if (isinstance(image, MoonTemplate)):
+    if image_type=="MoonTemplate":
+        image = get_object_or_404(MoonTemplate, pk=pk)
         form = MoonUploadForm(instance=image)
-        image_type = 'MoonTemplate'
     return render(request, 'image.html',
                   { 'form': form,
                     'image_type': image_type,
