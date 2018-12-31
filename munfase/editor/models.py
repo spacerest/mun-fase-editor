@@ -245,20 +245,22 @@ class PreviewImage(models.Model):
     def process_image_files(self, name=None, background_alpha=200, foreground_alpha=200, top_border=0, right_border=0, bottom_border=0, left_border=0):
         make_collage(self, file_name="small_temp.jpg", dim=450, name=None)
         #make data uri
-        image = Image.open(self.image.path)
-        if (image.width <= image.height):
-            ratio = 50.0 / image.width
-        elif (image.height <= image.width):
-            ratio = 50.0 / image.height
-        new_width = int(image.width * ratio)
-        new_height = int(image.height * ratio)
+        try:
+            image = Image.open(self.small_image.path)
+            if (image.width <= image.height):
+                ratio = 50.0 / image.width
+            elif (image.height <= image.width):
+                ratio = 50.0 / image.height
+            new_width = int(image.width * ratio)
+            new_height = int(image.height * ratio)
 
-        image = image.resize((new_width,new_height), Image.ANTIALIAS)
-        buffered = BytesIO()
-        image.save(fp=buffered, format='PNG')
-        im_data = buffered.getvalue()
-        self.image_data_uri = 'data:image/png;base64,' + base64.b64encode(im_data).decode(encoding="utf-8", errors="strict")
-
+            image = image.resize((new_width,new_height), Image.ANTIALIAS)
+            buffered = BytesIO()
+            image.save(fp=buffered, format='PNG')
+            im_data = buffered.getvalue()
+            self.image_data_uri = 'data:image/png;base64,' + base64.b64encode(im_data).decode(encoding="utf-8", errors="strict")
+        except Exception:
+            pass
 
 class Collage(UserUploadedImage):
     #caption

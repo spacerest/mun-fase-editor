@@ -25,7 +25,7 @@ SECRET_KEY = __keys__.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = True#False
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'munfases.space','www.munfases.space']
 
