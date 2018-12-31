@@ -23,6 +23,15 @@ from io import BytesIO
 from io import StringIO
 from django.core.files.base import ContentFile
 
+def about(request):
+    return render(request, 'about.html')
+
+def participate(request):
+    return render(request, 'participate.html')
+
+def watch_ad(request):
+    return render(request, 'watch_ad.html')
+
 #def signup(request):
 #    if request.user.is_authenticated:
 #        return redirect('/')

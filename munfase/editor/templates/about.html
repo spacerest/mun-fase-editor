@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="info-page">
+<h1>about</h1>
+
+<p>mun_fases (otherwise known as 'muf') is a small and <span class="special">(un?)directed</span> project where I post a daily collage including the day's lunar phase, a mirror selfie of a <span class="special">cutie,</span> and other images.</p>
+
+<h1>concept</h1>
+
+<p>As far as concepts <span class="special">go</span>, I started posting these pictures in mid-2018 when trying to get in better <span class="special">touch</span> with my menstrual cycle.</p>
+
+<p>I don't know that there's <span class="special">a</span> physical connection between a person's hormone levels and the phases of the moon, but I do know that there is at the very least a conceptual connection there. Anyway, I was looking to get in better touch with my <span class="special">daily</span> moods, so started posting these images daily.</p>
+
+<p>This project is also a consideration of how people relate to astrology. I don't know *that* much about the <span class="special">subject</span>, but in contemplative or confusing moments, I find myself thinking of myself and my relation to my surroundings through its scope. I have a sun and moon in sagittarius, with libra ascending. What does this mean to me? I'm not quite sure, but I think it's interesting <span class="special">that</span> I find it interesting. I like how it <span class="special">combines</span> structure with subjectivity. It inspires me to drink more water, it makes me think about "the elements", aka, everything <span class="special">solid</span> that I might otherwise not think about.</p>
+
+<h1>methods</h1>
+
+<p>Most of non-selfie images I use are graciously donated by my boyfriend, who likes collecting <span class="special">things</span> (like photographs of textures seen around). Some of them are also taken by me, and others are donated by other friends.</p>
+
+<p>The majority of selfies are images that I request to use (mostly by scrolling through #mirrorselfie and #reflection tags on instagram). Some people are ok <span class="special">with</span> me using their photos, some people are enthusiastically ok with it, some people don't respond (because we all get random comments on our photos sometimes, and who has time for that), and some people would rather that I don't include their photos.</p>
+
+<p>Starting out, I used <a href="https://www.gimp.org/" target="_blank">Gimp</a> to make my posts. It's a really great piece of open-source image-editing software. If you want a free <span class="special">alternative</span> to photoshop, I'd recommend it. </p>
+
+<p>After a month or so, I started building a web app using <a href="https://www.djangoproject.com/" target="_blank">Django</a>, <a href="https://pillow.readthedocs.io/en/5.3.x/" target="_blank"> the python image library </a>, and <a href="https://github.com/LevPasha/Instagram-API-python" target="_blank">Lev Pasha's python port of an an unofficial instagram API</a> in an effort to better organize the photos and automate the posts. It's easier in terms of keeping track of which photos people have said I can use. It's still a work in progress that I try to re<span class="special">view</span> and add to every once in a while. It's pretty specified to the task at hand and probably not very useful to anyone else, but you can feel free to check out the <a href="https://www.github.com/spacerest/mun-fase-editor" target="_blank">github repo</a> if you're interested in making a similar project.</p>
+
+<p>To try to grow a following on here, I run a little script that has my instagram account liking a certain number <span class="special">of</span> instagram posts a day, based on some list of hashtags. If you got a random like from me and we don't follow each other, it was probably my bot half.</p>
+
+<p>I get that bots are annoying, but I feel mostly ok with running this little liker script. I don't leave spammy comments or anything! <u>The pros:</u> someone gets a bonus like or two on a photo, and there's a small chance that the recipient will notice and check out my account and like what they see. <u>The cons:</u> I probably have quite a few spam accounts following me, I'm contributing to "the inversion." Related: I read an article today about <a href="http://nymag.com/intelligencer/2018/12/how-much-of-the-internet-is-fake.html" target="_blank">the realness vs. the fakeness online, if you're interested.</a></p>
+
+<h1>findings</h1>
+
+Surprisingly, my favorite part of this project has been these interactions of request.
+
+<h1>goals</h1>
+<ul>
+    <li>write more interesting captions</li>
+    <li>write some daily posts about my moods (maybe unrelated to this project)</li>
+    <li>try something besides mirror selfies (i.e. pictures people take of their shadows... seem to be much rarer but some<span class="special">time</span>s so beautiful!)</li>
+    <li>update this platform so that others can submit images on here / participate on other ways</li>
+
+</ul>
+</div>
+
+
+{% endblock %}
