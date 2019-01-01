@@ -242,11 +242,13 @@ thead {
   -webkit-filter: url("#myblurfilter");
   filter: url("#myblurfilter"); }
 
-.info-page h1 {
+@media screen and (max-width: 740px) {
+  .info-page {
+    margin: 5px 8px; } }
+.info-page h1, .info-page h2 {
   text-align: left; }
 .info-page a {
   color: #245db7;
-  text-decoration: underline;
   font-weight: 700;
   transition: color 0.2s ease-in-out; }
   .info-page a:hover {
@@ -261,14 +263,27 @@ thead {
 .special {
   background-color: rgba(255, 0, 0, 0.2); }
 
+.info-page .product-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; }
+  .info-page .product-container a {
+    display: inline-block; }
+    .info-page .product-container a p {
+      margin: 5px 0px;
+      color: black;
+      font-style: italic; }
+
 .product {
+  width: 23%;
+  min-width: 300px;
   text-align: center;
   padding: 10px;
   margin: 10px;
-  background-color: pink;
+  background-color: rgba(255, 0, 0, 0.2);
   border-radius: 15px;
   display: inline-block; }
-  .product a {
-    display: block; }
+  .product:hover {
+    background-color: rgba(255, 0, 0, 0.3); }
 
 /*# sourceMappingURL=style.css.map */
