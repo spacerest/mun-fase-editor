@@ -307,18 +307,12 @@ thead {
 .blurme {
   -webkit-filter: url("#myblurfilter");
   filter: url("#myblurfilter"); }
-
-p {
-    line-height: 20px;
-    font-weight: 100;
-}
-
 .info-page {
     h1 {
         text-align: left;
     }
     a {
-        color: rgba(66, 80, 244, 1);
+        color: rgba(36, 93, 183, 1);
         text-decoration: underline;
         font-weight: 700;
         transition: color 0.2s ease-in-out;
@@ -326,13 +320,28 @@ p {
             color: rgba(12, 60, 155, 1);
         }
     }
-    p {
-        margin-left: 10%;
+    p, ul, ol {
+      line-height: 20px;
+      font-weight: 100;
+      margin-left: 10%;
+    }
+    li {
+        margin-bottom: 10px;
     }
 }
 
 .special {
-    background-color: rgba(255,0,0,0.5);
-    color: white;
-    padding: 0px 3px;
+    background-color: rgba(255,0,0,0.2);
+}
+
+.product {
+    text-align: center;
+    padding: 10px;
+    margin: 10px;
+    background-color: pink;
+    border-radius: 15px;
+    display: inline-block;
+    a {
+        display: block;
+    }
 }

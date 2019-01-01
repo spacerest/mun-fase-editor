@@ -7,6 +7,13 @@
     <link rel="stylesheet" type="text/css" href='{% static "editor/style.css" %}'>
     <link rel="icon" href="{% static 'editor/favicon.png' %}" type="image/png" />
     <script src='{% static '/editor/images.js' %}'></script>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-1813811920573933",
+    enable_page_level_ads: true
+  });
+</script>
 </head>
 <body
     style="background-image: url({% static 'editor/moon.svg' %}); background-size: contain; background-repeat: no-repeat; background-attachment: fixed;"
@@ -20,6 +27,8 @@
         <a href="{% url 'logout' %}">logout</a>
         {% else %}
         <a class="mini-title" href="{% url 'home' %}" style="background-image: url({% static 'editor/m_f.svg' %}); background-size: contain; background-repeat: no-repeat;"></a>
+        <a href="{% url 'about' %}">about</a>
+        <a href="{% url 'participate' %}">participate</a>
         <a href="{% url 'login' %}">login</a>
         {% endif %}
     </nav>
