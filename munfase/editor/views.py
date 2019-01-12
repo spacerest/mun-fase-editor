@@ -14,6 +14,7 @@ from editor.instagram_modules.CustomInstagramAPI import CustomInstagramAPI as ig
 from django.shortcuts import get_object_or_404
 import datetime
 import pdb
+import time
 
 
 #for saving edited files to model
@@ -99,8 +100,10 @@ def edit_image(request):
     if previewForm.is_valid():
         previewImage = previewForm.save()
     previewImage.process_image_files(name=settings.MEDIA_ROOT + 'preview/' + 'temp.jpg', background_alpha=previewImage.background_transparency, foreground_alpha=previewImage.foreground_transparency )
+    current_time = str(time.time())
     return render(request, 'make_post.html',
-                      {'preview_form': previewForm,
+                      {'current_time': current_time,
+                       'preview_form': previewForm,
                        'preview_image': previewImage,
                        'extra_info': extraInfo,
                        'moon_images': moon_images,
