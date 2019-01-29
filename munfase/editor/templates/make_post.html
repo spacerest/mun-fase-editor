@@ -32,7 +32,7 @@
         <div class="open-cv-container flex-child blurme" id="preview-{{preview_image.id}}" style=
         "background-image: url({{ preview_image.image_data_uri }});
          background-size: cover;">
-            <img onload="hideUri('preview-{{preview_image.id}}', '/media/preview/small_temp.jpg')" class="hello hidden-image" src="{{ MEDIA_URL  }}{{ preview_image.small_image }}" / >
+            <img onload="hideUri('preview-{{preview_image.id}}', '/media/preview/small_temp.jpg?{{ current_time }}')" class="hello hidden-image" src="{{ MEDIA_URL  }}{{ preview_image.small_image }}?{{ current_time }}" / ><!-- using current_time as random query to browser is less likely to cache file -->
         </div>
             <form method='POST' class="flex-child">
                 {% csrf_token %}
