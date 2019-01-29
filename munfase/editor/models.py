@@ -41,13 +41,22 @@ import base64
 def get_upload_path(cls, filename):
     return cls.__class__.__name__ + "/" + filename
 
+class CurrentMoonPhase(models.Model):
+    """the current moon phase, based on date and a query to a website"""
+    images_website = models.URLField(max_length=2000)
+    image = models.ImageField(upload_to = get_upload_path, null = True, blank = True)
+    current_date = models.DateField()
+    percent_illumination = models.IntegerField(default=0)
+    mask = models.ImageField(upload_to = get_upload_path, null = True, blank = True)
+
+
+
 class UserUploadedImage(models.Model):
     """images that are uploaded by a user, resized, and combined to make final image"""
     image = models.ImageField(upload_to=get_upload_path, null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails", null=True)
     date_uploaded = models.DateField(auto_now_add=True, blank=True, null=True)
     source_url = models.URLField(max_length=2000, blank=True, null=True)
-
     def get_type(self):
         return self.__name__
     def save(self, image_size=(1000,1000), thumbnail_size=(100,100), *args, **kwargs):
