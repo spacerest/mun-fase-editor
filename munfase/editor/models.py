@@ -330,11 +330,12 @@ class Collage(UserUploadedImage):
 
     @classmethod
     def create(cls, previewImg):
-        if not previewImg.selfie.instagram_user:
-            raise Exception("No instagram user associated with that image")
-        selfie_user_id = previewImg.selfie.instagram_user.user_id
-        selfie_username = previewImg.selfie.instagram_user.username
-        selfie_media_id = previewImg.selfie.media_id
+        if previewImg.selfie.instagram_user:
+            selfie_user_id = previewImg.selfie.instagram_user.user_id
+            selfie_media_id = previewImg.selfie.media_id
+        else:
+            selfie_user_id = 0
+            selfie_media_id = 0
         hashtags = "{} {} {} {}".format(previewImg.moon.hashtags, previewImg.selfie.hashtags, previewImg.foreground.hashtags, previewImg.background.hashtags)
         moonstate_description = "{}, {}% illuminated".format(
                 previewImg.moon.moon_state,
@@ -354,9 +355,8 @@ class Collage(UserUploadedImage):
             background_user = ""
         return cls(
             image = None,
-            selfie_user_id = previewImg.selfie.instagram_user.user_id,
-            selfie_username = previewImg.selfie.instagram_user.username,
-            selfie_media_id = previewImg.selfie.media_id,
+            selfie_user_id = selfie_user_id,
+            selfie_media_id = selfie_media_id, 
             background_user = background_user,
             foreground_user = foreground_user,
             background_description = background_description,

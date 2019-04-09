@@ -20,13 +20,10 @@
                  background-size: cover;"></div>
 
             <div class="current-caption">
+                <p> {{ selected_image.foreground_description  }}</p>
+                <p>*</p>
                 <p>{{ selected_image.first_emoji }} {{ selected_image.moonstate_description }} {{ selected_image.second_emoji }}</p>
-                <p>*</p>
                 <p> 📷: {{ selected_image.selfie_username }}</p>
-                <p>*</p>
-                <p> {{ selected_image.foreground_description  }} as moon foreground</p>
-                <p>*</p>
-                <p> {{ selected_image.background_description  }} behind</p>
                 <p>*</p>
                 <p> {{ selected_image.hashtags  }}</p>
             </div>
@@ -46,12 +43,10 @@
                         <td>{{ caption_form.selfie_username }}</td>
                     </tr>
                     <tr>
-                        <td>{{caption_form.foreground_description.label }}</td>
-                        <td>{{ caption_form.background_description.label }}</td>
+                        <td> Caption </td>
                     </tr>
 <tr>
                         <td>{{caption_form.foreground_description }}</td>
-                        <td>{{ caption_form.background_description }}</td>
                     </tr>
                     <tr>
                         <td>{{ caption_form.first_emoji.label }}</td>
